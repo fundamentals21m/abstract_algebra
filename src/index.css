@@ -1,0 +1,242 @@
+/* Import KaTeX styles - must come first */
+@import 'katex/dist/katex.min.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom base styles */
+@layer base {
+  :root {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+
+  body {
+    @apply bg-dark-950 text-dark-100 antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  /* Typography */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl;
+  }
+
+  h3 {
+    @apply text-2xl md:text-3xl;
+  }
+
+  h4 {
+    @apply text-xl md:text-2xl;
+  }
+
+  /* Code blocks */
+  code {
+    @apply font-mono text-sm bg-dark-800 px-1.5 py-0.5 rounded;
+  }
+
+  pre code {
+    @apply bg-transparent p-0;
+  }
+}
+
+/* Custom component classes */
+@layer components {
+  /* Card component */
+  .card {
+    @apply bg-dark-900 border border-dark-700 rounded-xl p-6 shadow-lg;
+  }
+
+  /* Button variants */
+  .btn {
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-dark-900 disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary-600 text-white hover:bg-primary-700;
+  }
+
+  .btn-secondary {
+    @apply btn bg-dark-700 text-dark-100 hover:bg-dark-600;
+  }
+
+  .btn-ghost {
+    @apply btn bg-transparent text-dark-300 hover:bg-dark-800 hover:text-dark-100;
+  }
+
+  /* Input fields */
+  .input {
+    @apply w-full rounded-lg border border-dark-700 bg-dark-800 px-4 py-2 text-dark-100 placeholder-dark-500 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500;
+  }
+
+  /* Callout boxes */
+  .callout {
+    @apply rounded-lg border-l-4 p-4 my-4;
+  }
+
+  .callout-info {
+    @apply callout bg-blue-950/30 border-blue-500 text-blue-200;
+  }
+
+  .callout-success {
+    @apply callout bg-green-950/30 border-green-500 text-green-200;
+  }
+
+  .callout-warning {
+    @apply callout bg-amber-950/30 border-amber-500 text-amber-200;
+  }
+
+  .callout-error {
+    @apply callout bg-red-950/30 border-red-500 text-red-200;
+  }
+
+  /* Math blocks */
+  .math-block {
+    @apply my-6 py-4 px-6 bg-dark-800/50 rounded-lg overflow-x-auto text-center;
+  }
+
+  /* Navigation */
+  .nav-link {
+    @apply text-dark-400 hover:text-dark-100 transition-colors;
+  }
+
+  .nav-link-active {
+    @apply text-primary-400 font-medium;
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    @apply h-1 bg-dark-800 rounded-full overflow-hidden;
+  }
+
+  .progress-bar-fill {
+    @apply h-full bg-gradient-to-r from-primary-600 to-primary-400 transition-all duration-300;
+  }
+
+  /* Quiz styles */
+  .quiz-option {
+    @apply w-full text-left p-4 rounded-lg border border-dark-700 bg-dark-800 hover:border-primary-500 transition-colors cursor-pointer;
+  }
+
+  .quiz-option.selected {
+    @apply border-primary-500 bg-primary-900/20;
+  }
+
+  .quiz-option.correct {
+    @apply border-green-500 bg-green-900/20;
+  }
+
+  .quiz-option.incorrect {
+    @apply border-red-500 bg-red-900/20;
+  }
+
+  /* Interactive demo container */
+  .demo-container {
+    @apply bg-dark-900 border border-dark-700 rounded-xl p-6 my-8;
+  }
+
+  /* Canvas container */
+  .canvas-container {
+    @apply relative bg-dark-950 rounded-lg overflow-hidden;
+  }
+
+  /* Cayley table styles */
+  .cayley-table {
+    @apply border-collapse;
+  }
+
+  .cayley-table th,
+  .cayley-table td {
+    @apply border border-dark-700 p-2 text-center min-w-[3rem];
+  }
+
+  .cayley-table th {
+    @apply bg-dark-800 font-semibold;
+  }
+
+  .cayley-table td {
+    @apply bg-dark-900 hover:bg-dark-800 transition-colors cursor-pointer;
+  }
+
+  .cayley-table td.highlighted {
+    @apply bg-primary-900/40;
+  }
+
+  .cayley-table td.identity {
+    @apply text-green-400;
+  }
+
+  /* Sidebar styles */
+  .sidebar {
+    @apply fixed left-0 top-0 h-full w-64 bg-dark-900 border-r border-dark-700 overflow-y-auto;
+  }
+
+  .sidebar-section {
+    @apply py-2;
+  }
+
+  .sidebar-heading {
+    @apply px-4 py-2 text-xs font-semibold uppercase tracking-wider text-dark-500;
+  }
+
+  .sidebar-link {
+    @apply block px-4 py-2 text-sm text-dark-400 hover:text-dark-100 hover:bg-dark-800 transition-colors;
+  }
+
+  .sidebar-link-active {
+    @apply text-primary-400 bg-primary-900/20;
+  }
+}
+
+/* Utility classes */
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.dark.700') theme('colors.dark.900');
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: theme('colors.dark.900');
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: theme('colors.dark.700');
+    border-radius: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: theme('colors.dark.600');
+  }
+}
