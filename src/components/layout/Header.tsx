@@ -7,16 +7,16 @@ interface HeaderProps {
 
 export function Header({ sidebarOpen, onToggleSidebar }: HeaderProps) {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-dark-900/95 backdrop-blur border-b border-dark-700">
-      <div className="h-full flex items-center justify-between px-4">
+    <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-dark-950/80 backdrop-blur-xl border-b border-dark-700/50">
+      <div className="h-full flex items-center justify-between px-4 lg:px-6">
         <div className="flex items-center gap-4">
           <button
             onClick={onToggleSidebar}
-            className="p-2 rounded-lg hover:bg-dark-800 transition-colors lg:hidden"
+            className="p-2 rounded-xl hover:bg-dark-800/60 transition-all duration-200 lg:hidden group"
             aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
           >
             <svg
-              className="w-6 h-6"
+              className="w-6 h-6 text-dark-400 group-hover:text-dark-100 transition-colors"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -39,27 +39,32 @@ export function Header({ sidebarOpen, onToggleSidebar }: HeaderProps) {
             </svg>
           </button>
 
-          <Link to="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-              <span className="text-white font-bold text-lg">A</span>
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-primary-500/25 group-hover:shadow-xl group-hover:shadow-primary-500/30 transition-all duration-300 group-hover:scale-105">
+              <span className="text-white font-bold text-lg">∑</span>
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/20 to-transparent" />
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-lg font-semibold text-dark-100">Abstract Algebra</h1>
-              <p className="text-xs text-dark-400">Interactive Learning</p>
+              <h1 className="text-lg font-bold text-dark-100 group-hover:text-white transition-colors">
+                Abstract Algebra
+              </h1>
+              <p className="text-xs text-dark-500 group-hover:text-dark-400 transition-colors">
+                Interactive Learning
+              </p>
             </div>
           </Link>
         </div>
 
-        <nav className="flex items-center gap-2">
+        <nav className="flex items-center gap-1">
           <Link
             to="/"
-            className="px-3 py-2 text-sm text-dark-300 hover:text-dark-100 hover:bg-dark-800 rounded-lg transition-colors"
+            className="px-4 py-2 text-sm font-medium text-dark-400 hover:text-dark-100 hover:bg-dark-800/50 rounded-xl transition-all duration-200"
           >
             Home
           </Link>
           <Link
             to="/section/0"
-            className="px-3 py-2 text-sm text-dark-300 hover:text-dark-100 hover:bg-dark-800 rounded-lg transition-colors"
+            className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-xl shadow-md shadow-primary-500/20 hover:shadow-lg hover:shadow-primary-500/30 hover:scale-[1.02] transition-all duration-200"
           >
             Start Learning
           </Link>
@@ -67,7 +72,7 @@ export function Header({ sidebarOpen, onToggleSidebar }: HeaderProps) {
             href="https://github.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="p-2 text-dark-400 hover:text-dark-100 hover:bg-dark-800 rounded-lg transition-colors"
+            className="ml-2 p-2.5 text-dark-500 hover:text-dark-100 hover:bg-dark-800/50 rounded-xl transition-all duration-200"
             aria-label="GitHub"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
