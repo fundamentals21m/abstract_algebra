@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BrowserRouter, Routes, Route, useParams } from 'react-router-dom';
+import { HashRouter, Routes, Route, useParams } from 'react-router-dom';
 import { Header, Sidebar, LessonLayout } from './components/layout';
 import { Home } from './pages/Home';
 import { getSectionById } from './data/curriculum';
@@ -95,9 +95,9 @@ function AppLayout() {
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <AppLayout />
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
