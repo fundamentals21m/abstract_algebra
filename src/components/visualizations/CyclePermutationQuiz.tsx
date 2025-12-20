@@ -81,7 +81,13 @@ function permutationToCycles(perm: number[]): number[][] {
 
 function cyclesToString(cycles: number[][]): string {
   if (cycles.length === 0) return 'e';
-  return cycles.map(c => `(${c.join(' ')})`).join('');
+  return cycles.map(c => {
+    // For 2-cycles (transpositions), normalize so smaller element comes first
+    if (c.length === 2 && c[0] > c[1]) {
+      return `(${c[1]} ${c[0]})`;
+    }
+    return `(${c.join(' ')})`;
+  }).join('');
 }
 
 function gcd(a: number, b: number): number {
@@ -97,11 +103,16 @@ function orderOfPermutation(cycles: number[][]): number {
   return cycles.reduce((acc, cycle) => lcm(acc, cycle.length), 1);
 }
 
+// Normalize a transposition so smaller element comes first: (2 1) -> (1 2)
+function normalizeTransposition(a: number, b: number): string {
+  return a < b ? `(${a} ${b})` : `(${b} ${a})`;
+}
+
 function cycleToTranspositions(cycle: number[]): string {
   if (cycle.length <= 1) return 'e';
   const transpositions: string[] = [];
   for (let i = cycle.length - 1; i >= 1; i--) {
-    transpositions.push(`(${cycle[0]} ${cycle[i]})`);
+    transpositions.push(normalizeTransposition(cycle[0], cycle[i]));
   }
   return transpositions.join('');
 }
@@ -187,7 +198,7 @@ function generateMappingToCycleQuestion(difficulty: Difficulty): MultipleChoiceQ
   const correctCycles = permutationToCycles(perm);
   const correctAnswer = cyclesToString(correctCycles);
 
-  // Generate wrong answers
+  // Generate wrong answers (normalize 2-cycles so smaller element comes first)
   const wrongAnswers: string[] = [];
 
   // Wrong: different cycle structure
@@ -197,17 +208,21 @@ function generateMappingToCycleQuestion(difficulty: Difficulty): MultipleChoiceQ
   if (correctCycles.length === 1 && correctCycles[0].length === 2) {
     const other = elements.filter(e => !correctCycles[0].includes(e));
     if (other.length >= 2) {
-      wrongAnswers.push(`(${other[0]} ${other[1]})`);
+      const [a, b] = [other[0], other[1]].sort((x, y) => x - y);
+      wrongAnswers.push(`(${a} ${b})`);
     }
   }
 
-  // Add some random wrong cycles
+  // Add some random wrong cycles (normalize 2-cycles)
   const randomWrong = shuffle(elements);
-  wrongAnswers.push(`(${randomWrong[0]} ${randomWrong[1]})`);
+  const [r0, r1] = [randomWrong[0], randomWrong[1]].sort((x, y) => x - y);
+  wrongAnswers.push(`(${r0} ${r1})`);
   if (randomWrong.length >= 3) {
     wrongAnswers.push(`(${randomWrong[0]} ${randomWrong[1]} ${randomWrong[2]})`);
-    wrongAnswers.push(`(${randomWrong[1]} ${randomWrong[2]})`);
-    wrongAnswers.push(`(${randomWrong[0]} ${randomWrong[2]})`);
+    const [s0, s1] = [randomWrong[1], randomWrong[2]].sort((x, y) => x - y);
+    wrongAnswers.push(`(${s0} ${s1})`);
+    const [t0, t1] = [randomWrong[0], randomWrong[2]].sort((x, y) => x - y);
+    wrongAnswers.push(`(${t0} ${t1})`);
   }
   if (correctAnswer !== 'e') {
     wrongAnswers.push('e');
@@ -267,11 +282,18 @@ function generateComposeCyclesQuestion(difficulty: Difficulty): MultipleChoiceQu
   const wrong1 = cyclesToString(wrong1Cycles);
 
   const wrongAnswers = [wrong1];
-  // Add some plausible wrong answers
-  wrongAnswers.push(`(${cycle1[0]} ${cycle2[0]})`);
+  // Add some plausible wrong answers (normalize 2-cycles)
+  const a = Math.min(cycle1[0], cycle2[0]);
+  const b = Math.max(cycle1[0], cycle2[0]);
+  wrongAnswers.push(`(${a} ${b})`);
   if (cycle1.length > 1 && cycle2.length > 1) {
-    wrongAnswers.push(`(${cycle1[0]} ${cycle1[1]} ${cycle2[cycle2.length - 1]})`);
-    wrongAnswers.push(`(${cycle1[1]} ${cycle2[0]})`);
+    // 3-cycle wrong answer
+    const elems = [cycle1[0], cycle1[1], cycle2[cycle2.length - 1]].sort((x, y) => x - y);
+    wrongAnswers.push(`(${elems[0]} ${elems[1]} ${elems[2]})`);
+    // Another 2-cycle
+    const c = Math.min(cycle1[1], cycle2[0]);
+    const d = Math.max(cycle1[1], cycle2[0]);
+    wrongAnswers.push(`(${c} ${d})`);
   }
   if (correctAnswer !== 'e') {
     wrongAnswers.push('e');
@@ -425,22 +447,32 @@ function generateTranspositionsQuestion(difficulty: Difficulty): MultipleChoiceQ
   const cycleStr = `(${cycle.join(' ')})`;
   const correct = cycleToTranspositions(cycle);
 
-  // Generate wrong answers
+  // Generate wrong answers (use normalizeTransposition for consistency)
   const wrongAnswers: string[] = [];
-  // Wrong order
+  // Wrong order (reversed cycle gives different transposition order)
   const reversed = [...cycle].reverse();
   wrongAnswers.push(cycleToTranspositions(reversed));
-  // Missing one
+  // Missing one transposition
   if (cycle.length >= 3) {
-    wrongAnswers.push(`(${cycle[0]} ${cycle[1]})`);
+    wrongAnswers.push(normalizeTransposition(cycle[0], cycle[1]));
   }
-  // Wrong elements
+  // Wrong number of transpositions
   if (cycle.length >= 3) {
-    wrongAnswers.push(`(${cycle[0]} ${cycle[1]})(${cycle[0]} ${cycle[2]})`);
+    wrongAnswers.push(
+      normalizeTransposition(cycle[0], cycle[1]) + normalizeTransposition(cycle[0], cycle[2])
+    );
   }
   // Wrong starting element
   if (cycle.length >= 3) {
-    wrongAnswers.push(`(${cycle[1]} ${cycle[2]})(${cycle[1]} ${cycle[0]})`);
+    wrongAnswers.push(
+      normalizeTransposition(cycle[1], cycle[2]) + normalizeTransposition(cycle[0], cycle[1])
+    );
+  }
+  // Extra wrong: different pair
+  if (cycle.length >= 4) {
+    wrongAnswers.push(
+      normalizeTransposition(cycle[0], cycle[2]) + normalizeTransposition(cycle[1], cycle[3])
+    );
   }
 
   const uniqueWrong = [...new Set(wrongAnswers)].filter(w => w !== correct).slice(0, 3);
