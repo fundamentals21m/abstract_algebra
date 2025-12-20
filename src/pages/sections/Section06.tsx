@@ -1,6 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
-import { CyclicGroupWheel } from '../../components/visualizations';
+import { CyclicGroupWheel, CyclicGroupQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section06() {
@@ -267,6 +267,16 @@ export default function Section06() {
               </p>
             </div>
           </div>
+        </section>
+
+        {/* Practice Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Practice: Cyclic Groups</h3>
+          <p className="text-dark-300 mb-6">
+            Test your understanding of cyclic groups, element orders, generators, and Euler's totient function.
+            Each quiz generates 10 random questions.
+          </p>
+          <CyclicGroupQuiz />
         </section>
 
         {/* Summary */}

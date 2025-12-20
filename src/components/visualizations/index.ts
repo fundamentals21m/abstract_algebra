@@ -1,5 +1,6 @@
 export { CayleyTable, CayleyTableDemo, AbelianCayleyTableDemo, ZnCayleyTable, DnCayleyTable, SnCayleyTable, AnCayleyTable, V4CayleyTable } from './CayleyTable';
 export { CyclePermutationQuiz } from './CyclePermutationQuiz';
+export { CyclicGroupQuiz } from './CyclicGroupQuiz';
 export { SymmetryAnimation, SymmetryAnimationDemo } from './SymmetryAnimation';
 export { PermutationComposer, PermutationComposerDemo } from './PermutationComposer';
 export { SubgroupLattice, SubgroupLatticeDemo } from './SubgroupLattice';
