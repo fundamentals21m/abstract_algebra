@@ -1,6 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
-import { PermutationWorkbenchDemo } from '../../components/visualizations';
+import { PermutationWorkbenchDemo, CyclePermutationQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section08() {
@@ -264,6 +264,16 @@ export default function Section08() {
             the same cycle type.
           </p>
         </Theorem>
+
+        {/* Practice Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Practice: Cycle Permutations</h3>
+          <p className="text-dark-300 mb-6">
+            Test your understanding of cycle notation, composition, order, and parity.
+            Each quiz generates 10 random questions.
+          </p>
+          <CyclePermutationQuiz />
+        </section>
 
         {/* Summary */}
         <section className="card">
