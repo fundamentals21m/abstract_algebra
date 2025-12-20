@@ -1,6 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
-import { SymmetryAnimationDemo, PermutationComposerDemo, CayleyTableDemo, GeometricSymmetries } from '../../components/visualizations';
+import { SymmetryAnimationDemo, PermutationComposerDemo, AbelianCayleyTableDemo, GeometricSymmetries } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section04() {
@@ -192,8 +192,7 @@ export default function Section04() {
 
           {/* D_n Cayley Table */}
           <div className="mt-6">
-            <h4 className="font-semibold mb-3">Interactive: <Math>D_n</Math> Cayley Table</h4>
-            <CayleyTableDemo defaultGroup="Dn" defaultN={3} />
+            <AbelianCayleyTableDemo defaultGroup="Dn" defaultN={3} />
           </div>
         </section>
 
