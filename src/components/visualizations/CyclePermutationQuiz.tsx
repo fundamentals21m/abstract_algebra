@@ -9,13 +9,25 @@ type QuestionType =
   | 'find_parity'           // Determine if even or odd
   | 'cycle_to_transpositions'; // Write as product of transpositions
 
-interface Question {
+interface MultipleChoiceQuestion {
   type: QuestionType;
+  responseType: 'multiple_choice';
   question: string;
   options: string[];
   correctIndex: number;
   explanation: string;
 }
+
+interface FreeResponseQuestion {
+  type: QuestionType;
+  responseType: 'free_response';
+  question: string;
+  correctAnswer: string;
+  acceptedAnswers: string[]; // Alternative valid answers
+  explanation: string;
+}
+
+type Question = MultipleChoiceQuestion | FreeResponseQuestion;
 
 // Utility functions for permutations
 function composePerm(a: number[], b: number[]): number[] {
@@ -108,7 +120,7 @@ function randomCycle(elements: number[], length: number): number[] {
 }
 
 // Question generators
-function generateCycleToMappingQuestion(): Question {
+function generateCycleToMappingQuestion(): FreeResponseQuestion {
   const n = 4 + Math.floor(Math.random() * 2); // 4 or 5
   const cycleLength = 2 + Math.floor(Math.random() * (n - 1)); // 2 to n
   const elements = Array.from({ length: n }, (_, i) => i + 1);
@@ -119,21 +131,18 @@ function generateCycleToMappingQuestion(): Question {
   const correctAnswer = cycle[nextIndex];
 
   const cycleStr = `(${cycle.join(' ')})`;
-  const options = shuffle([
-    correctAnswer.toString(),
-    ...elements.filter(e => e !== correctAnswer).slice(0, 3).map(e => e.toString())
-  ]);
 
   return {
     type: 'cycle_to_mapping',
+    responseType: 'free_response',
     question: `In S${n}, if σ = ${cycleStr}, what is σ(${queryElement})?`,
-    options,
-    correctIndex: options.indexOf(correctAnswer.toString()),
+    correctAnswer: correctAnswer.toString(),
+    acceptedAnswers: [correctAnswer.toString()],
     explanation: `In the cycle ${cycleStr}, each element maps to the next one. So ${queryElement} → ${correctAnswer}.`
   };
 }
 
-function generateMappingToCycleQuestion(): Question {
+function generateMappingToCycleQuestion(): MultipleChoiceQuestion {
   const n = 4;
   // Generate a random permutation with 1-2 non-trivial cycles
   const numCycles = 1 + Math.floor(Math.random() * 2);
@@ -185,6 +194,7 @@ function generateMappingToCycleQuestion(): Question {
 
   return {
     type: 'mapping_to_cycle',
+    responseType: 'multiple_choice',
     question: `Write ${twoLine} in cycle notation:`,
     options,
     correctIndex: options.indexOf(correctAnswer),
@@ -192,7 +202,7 @@ function generateMappingToCycleQuestion(): Question {
   };
 }
 
-function generateComposeCyclesQuestion(): Question {
+function generateComposeCyclesQuestion(): MultipleChoiceQuestion {
   const n = 4;
   // Generate two simple cycles
   const cycle1 = randomCycle([1, 2, 3], 2);
@@ -228,6 +238,7 @@ function generateComposeCyclesQuestion(): Question {
 
   return {
     type: 'compose_cycles',
+    responseType: 'multiple_choice',
     question: `Compute ${cycle1Str} ∘ ${cycle2Str} (apply ${cycle2Str} first):`,
     options,
     correctIndex: options.indexOf(correctAnswer),
@@ -235,7 +246,7 @@ function generateComposeCyclesQuestion(): Question {
   };
 }
 
-function generateFindOrderQuestion(): Question {
+function generateFindOrderQuestion(): FreeResponseQuestion {
   const n = 5;
   // Generate a permutation with interesting order
   const cycleConfigs = [
@@ -251,24 +262,19 @@ function generateFindOrderQuestion(): Question {
   const order = orderOfPermutation(cycles);
   const cycleStr = cyclesToString(cycles);
 
-  const allOrders = [1, 2, 3, 4, 5, 6, 10, 12];
-  const wrongOrders = allOrders.filter(o => o !== order);
-  const selectedWrong = shuffle(wrongOrders).slice(0, 3);
-
-  const options = shuffle([order.toString(), ...selectedWrong.map(o => o.toString())]);
-
   const lengths = cycles.map(c => c.length);
 
   return {
     type: 'find_order',
+    responseType: 'free_response',
     question: `What is the order of σ = ${cycleStr} in S${n}?`,
-    options,
-    correctIndex: options.indexOf(order.toString()),
+    correctAnswer: order.toString(),
+    acceptedAnswers: [order.toString()],
     explanation: `The cycle lengths are ${lengths.join(' and ')}. Order = lcm(${lengths.join(', ')}) = ${order}.`
   };
 }
 
-function generateFindParityQuestion(): Question {
+function generateFindParityQuestion(): MultipleChoiceQuestion {
   const cycleConfigs: [number[][], 'even' | 'odd'][] = [
     [[[1, 2]], 'odd'],
     [[[1, 2, 3]], 'even'],
@@ -286,6 +292,7 @@ function generateFindParityQuestion(): Question {
 
   return {
     type: 'find_parity',
+    responseType: 'multiple_choice',
     question: `Is σ = ${cycleStr} an even or odd permutation?`,
     options,
     correctIndex: options.indexOf(parity),
@@ -293,7 +300,7 @@ function generateFindParityQuestion(): Question {
   };
 }
 
-function generateTranspositionsQuestion(): Question {
+function generateTranspositionsQuestion(): MultipleChoiceQuestion {
   const cycles: number[][] = [
     [1, 2, 3],
     [1, 2, 3, 4],
@@ -322,6 +329,7 @@ function generateTranspositionsQuestion(): Question {
 
   return {
     type: 'cycle_to_transpositions',
+    responseType: 'multiple_choice',
     question: `Write ${cycleStr} as a product of transpositions:`,
     options,
     correctIndex: options.indexOf(correct),
@@ -351,18 +359,24 @@ export function CyclePermutationQuiz() {
   );
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [textAnswer, setTextAnswer] = useState('');
   const [showResult, setShowResult] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
   const [score, setScore] = useState(0);
   const [answered, setAnswered] = useState<boolean[]>(() => new Array(10).fill(false));
 
   const currentQuestion = questions[currentIndex];
 
-  const handleAnswer = (optionIndex: number) => {
+  const handleMultipleChoiceAnswer = (optionIndex: number) => {
     if (showResult) return;
+    const q = currentQuestion as MultipleChoiceQuestion;
+    const correct = optionIndex === q.correctIndex;
+
     setSelectedAnswer(optionIndex);
     setShowResult(true);
+    setIsCorrect(correct);
 
-    if (optionIndex === currentQuestion.correctIndex && !answered[currentIndex]) {
+    if (correct && !answered[currentIndex]) {
       setScore(s => s + 1);
     }
 
@@ -371,9 +385,35 @@ export function CyclePermutationQuiz() {
     setAnswered(newAnswered);
   };
 
+  const handleFreeResponseSubmit = () => {
+    if (showResult || !textAnswer.trim()) return;
+    const q = currentQuestion as FreeResponseQuestion;
+    const userAnswer = textAnswer.trim().toLowerCase();
+    const correct = q.acceptedAnswers.some(a => a.toLowerCase() === userAnswer);
+
+    setShowResult(true);
+    setIsCorrect(correct);
+
+    if (correct && !answered[currentIndex]) {
+      setScore(s => s + 1);
+    }
+
+    const newAnswered = [...answered];
+    newAnswered[currentIndex] = true;
+    setAnswered(newAnswered);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleFreeResponseSubmit();
+    }
+  };
+
   const nextQuestion = () => {
     setSelectedAnswer(null);
+    setTextAnswer('');
     setShowResult(false);
+    setIsCorrect(false);
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(i => i + 1);
     }
@@ -381,7 +421,9 @@ export function CyclePermutationQuiz() {
 
   const prevQuestion = () => {
     setSelectedAnswer(null);
+    setTextAnswer('');
     setShowResult(false);
+    setIsCorrect(false);
     if (currentIndex > 0) {
       setCurrentIndex(i => i - 1);
     }
@@ -391,7 +433,9 @@ export function CyclePermutationQuiz() {
     setQuestions(Array.from({ length: 10 }, generateQuestion));
     setCurrentIndex(0);
     setSelectedAnswer(null);
+    setTextAnswer('');
     setShowResult(false);
+    setIsCorrect(false);
     setScore(0);
     setAnswered(new Array(10).fill(false));
   };
@@ -414,13 +458,15 @@ export function CyclePermutationQuiz() {
 
       {/* Progress dots */}
       <div className="flex gap-2 mb-6 justify-center">
-        {questions.map((_, i) => (
+        {questions.map((q, i) => (
           <button
             key={i}
             onClick={() => {
               setCurrentIndex(i);
               setSelectedAnswer(null);
+              setTextAnswer('');
               setShowResult(false);
+              setIsCorrect(false);
             }}
             className={`w-3 h-3 rounded-full transition-all ${
               i === currentIndex
@@ -429,63 +475,107 @@ export function CyclePermutationQuiz() {
                   ? 'bg-green-500'
                   : 'bg-dark-600'
             }`}
+            title={q.responseType === 'free_response' ? 'Free response' : 'Multiple choice'}
           />
         ))}
       </div>
 
       {/* Question */}
       <div className="p-6 bg-dark-800/50 rounded-xl mb-6">
-        <p className="text-sm text-dark-400 mb-2">
-          Question {currentIndex + 1} of {questions.length}
-        </p>
+        <div className="flex items-center gap-2 mb-2">
+          <p className="text-sm text-dark-400">
+            Question {currentIndex + 1} of {questions.length}
+          </p>
+          <span className={`text-xs px-2 py-0.5 rounded ${
+            currentQuestion.responseType === 'free_response'
+              ? 'bg-blue-500/20 text-blue-400'
+              : 'bg-purple-500/20 text-purple-400'
+          }`}>
+            {currentQuestion.responseType === 'free_response' ? 'Type answer' : 'Multiple choice'}
+          </span>
+        </div>
         <p className="text-lg font-medium text-dark-100 font-mono">
           {currentQuestion.question}
         </p>
       </div>
 
-      {/* Options */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-        {currentQuestion.options.map((option, i) => {
-          const isCorrect = i === currentQuestion.correctIndex;
-          const isSelected = i === selectedAnswer;
+      {/* Answer area */}
+      {currentQuestion.responseType === 'multiple_choice' ? (
+        /* Multiple choice options */
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+          {currentQuestion.options.map((option, i) => {
+            const isCorrectOption = i === currentQuestion.correctIndex;
+            const isSelected = i === selectedAnswer;
 
-          let bgClass = 'bg-dark-800 hover:bg-dark-700 border-dark-600';
-          if (showResult) {
-            if (isCorrect) {
-              bgClass = 'bg-green-500/20 border-green-500';
+            let bgClass = 'bg-dark-800 hover:bg-dark-700 border-dark-600';
+            if (showResult) {
+              if (isCorrectOption) {
+                bgClass = 'bg-green-500/20 border-green-500';
+              } else if (isSelected) {
+                bgClass = 'bg-red-500/20 border-red-500';
+              }
             } else if (isSelected) {
-              bgClass = 'bg-red-500/20 border-red-500';
+              bgClass = 'bg-primary-500/20 border-primary-500';
             }
-          } else if (isSelected) {
-            bgClass = 'bg-primary-500/20 border-primary-500';
-          }
 
-          return (
-            <button
-              key={i}
-              onClick={() => handleAnswer(i)}
+            return (
+              <button
+                key={i}
+                onClick={() => handleMultipleChoiceAnswer(i)}
+                disabled={showResult}
+                className={`p-4 rounded-lg border-2 text-left font-mono transition-all ${bgClass}`}
+              >
+                {option}
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        /* Free response input */
+        <div className="mb-6">
+          <div className="flex gap-3">
+            <input
+              type="text"
+              value={textAnswer}
+              onChange={(e) => setTextAnswer(e.target.value)}
+              onKeyDown={handleKeyDown}
               disabled={showResult}
-              className={`p-4 rounded-lg border-2 text-left font-mono transition-all ${bgClass}`}
+              placeholder="Enter your answer..."
+              className={`flex-1 px-4 py-3 rounded-lg border-2 bg-dark-800 font-mono text-lg transition-all focus:outline-none ${
+                showResult
+                  ? isCorrect
+                    ? 'border-green-500 bg-green-500/20'
+                    : 'border-red-500 bg-red-500/20'
+                  : 'border-dark-600 focus:border-primary-500'
+              }`}
+            />
+            <button
+              onClick={handleFreeResponseSubmit}
+              disabled={showResult || !textAnswer.trim()}
+              className="btn-primary px-6 disabled:opacity-50"
             >
-              {option}
+              Check
             </button>
-          );
-        })}
-      </div>
+          </div>
+          {showResult && !isCorrect && (
+            <p className="mt-2 text-sm text-dark-400">
+              Correct answer: <span className="font-mono text-green-400">{currentQuestion.correctAnswer}</span>
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Explanation */}
       {showResult && (
         <div className={`p-4 rounded-lg mb-6 ${
-          selectedAnswer === currentQuestion.correctIndex
+          isCorrect
             ? 'bg-green-500/10 border border-green-500/30'
             : 'bg-orange-500/10 border border-orange-500/30'
         }`}>
           <p className={`font-semibold mb-2 ${
-            selectedAnswer === currentQuestion.correctIndex
-              ? 'text-green-400'
-              : 'text-orange-400'
+            isCorrect ? 'text-green-400' : 'text-orange-400'
           }`}>
-            {selectedAnswer === currentQuestion.correctIndex ? 'Correct!' : 'Not quite.'}
+            {isCorrect ? 'Correct!' : 'Not quite.'}
           </p>
           <p className="text-dark-300 text-sm">
             {currentQuestion.explanation}
