@@ -328,6 +328,120 @@ interface GeometricSymmetriesProps {
   initialShape?: ShapeType;
 }
 
+// Compute the permutation for a given rotation and reflection
+function computePermutation(
+  shape: ShapeType,
+  rotation: number,
+  reflectionAxisIndex: number | null
+): number[] {
+  const n = shape === 'triangle' ? 3 : 4;
+  const rotationStep = shape === 'triangle' ? 120 : 90;
+
+  // Start with identity permutation [1, 2, 3, ...] (1-indexed for display)
+  const perm = Array.from({ length: n }, (_, i) => i + 1);
+
+  // Apply rotation: rotate by (rotation / rotationStep) positions
+  const rotSteps = Math.round(rotation / rotationStep) % n;
+  const rotated = perm.map((_, i) => perm[(i - rotSteps + n) % n]);
+
+  if (reflectionAxisIndex === null) {
+    return rotated;
+  }
+
+  // Apply reflection based on shape and axis
+  if (shape === 'triangle') {
+    // Triangle reflections: axis i fixes vertex i+1, swaps the other two
+    // Axis 0 (vertical): fixes 1, swaps 2↔3
+    // Axis 1: fixes 2, swaps 1↔3
+    // Axis 2: fixes 3, swaps 1↔2
+    const result = [...rotated];
+    if (reflectionAxisIndex === 0) {
+      // Swap positions that end up at 2 and 3
+      [result[1], result[2]] = [result[2], result[1]];
+    } else if (reflectionAxisIndex === 1) {
+      // Swap positions 0 and 2
+      [result[0], result[2]] = [result[2], result[0]];
+    } else {
+      // Swap positions 0 and 1
+      [result[0], result[1]] = [result[1], result[0]];
+    }
+    return result;
+  } else if (shape === 'rectangle') {
+    // Rectangle reflections:
+    // Axis 0 (vertical): swaps 1↔2, 3↔4
+    // Axis 1 (horizontal): swaps 1↔4, 2↔3
+    const result = [...rotated];
+    if (reflectionAxisIndex === 0) {
+      [result[0], result[1]] = [result[1], result[0]];
+      [result[2], result[3]] = [result[3], result[2]];
+    } else {
+      [result[0], result[3]] = [result[3], result[0]];
+      [result[1], result[2]] = [result[2], result[1]];
+    }
+    return result;
+  } else {
+    // Square reflections:
+    // Axis 0 (vertical): swaps 1↔2, 3↔4
+    // Axis 1 (horizontal): swaps 1↔4, 2↔3
+    // Axis 2 (diagonal \): swaps 2↔4, fixes 1,3
+    // Axis 3 (diagonal /): swaps 1↔3, fixes 2,4
+    const result = [...rotated];
+    if (reflectionAxisIndex === 0) {
+      [result[0], result[1]] = [result[1], result[0]];
+      [result[2], result[3]] = [result[3], result[2]];
+    } else if (reflectionAxisIndex === 1) {
+      [result[0], result[3]] = [result[3], result[0]];
+      [result[1], result[2]] = [result[2], result[1]];
+    } else if (reflectionAxisIndex === 2) {
+      [result[1], result[3]] = [result[3], result[1]];
+    } else {
+      [result[0], result[2]] = [result[2], result[0]];
+    }
+    return result;
+  }
+}
+
+// Convert permutation array to cycle notation string
+function toCycleNotation(perm: number[]): string {
+  const n = perm.length;
+  const visited = new Array(n).fill(false);
+  const cycles: number[][] = [];
+
+  for (let i = 0; i < n; i++) {
+    if (visited[i]) continue;
+
+    const cycle: number[] = [];
+    let j = i;
+
+    while (!visited[j]) {
+      visited[j] = true;
+      cycle.push(j + 1); // 1-indexed
+      // Find where j+1 went: perm[j] is what's now at position j
+      // We need: where did original position j+1 go?
+      j = perm.indexOf(j + 1);
+    }
+
+    if (cycle.length > 1) {
+      cycles.push(cycle);
+    }
+  }
+
+  if (cycles.length === 0) {
+    return 'e (identity)';
+  }
+
+  return cycles.map(c => `(${c.join(' ')})`).join('');
+}
+
+// Get two-line notation for permutation
+function toTwoLineNotation(perm: number[]): { top: number[]; bottom: number[] } {
+  const n = perm.length;
+  return {
+    top: Array.from({ length: n }, (_, i) => i + 1),
+    bottom: perm
+  };
+}
+
 export function GeometricSymmetries({ initialShape = 'triangle' }: GeometricSymmetriesProps) {
   const [selectedShape, setSelectedShape] = useState<ShapeType>(initialShape);
   const [rotation, setRotation] = useState(0);
@@ -335,6 +449,11 @@ export function GeometricSymmetries({ initialShape = 'triangle' }: GeometricSymm
   const [showAxes, setShowAxes] = useState(true);
 
   const info = shapeInfo[selectedShape];
+
+  // Compute current permutation
+  const currentPerm = computePermutation(selectedShape, rotation, reflectionAxisIndex);
+  const cycleNotation = toCycleNotation(currentPerm);
+  const twoLine = toTwoLineNotation(currentPerm);
 
   const handleShapeChange = useCallback((shape: ShapeType) => {
     setSelectedShape(shape);
@@ -390,6 +509,41 @@ export function GeometricSymmetries({ initialShape = 'triangle' }: GeometricSymm
             showAxes={showAxes}
             shape={selectedShape}
           />
+
+          {/* Permutation Display */}
+          <div className="mt-4 p-4 bg-dark-900/70 rounded-xl border border-dark-700/50 w-full max-w-[300px]">
+            <h4 className="text-xs font-semibold text-dark-400 uppercase tracking-wide mb-3">
+              Permutation
+            </h4>
+
+            {/* Two-line notation */}
+            <div className="font-mono text-center mb-3">
+              <div className="inline-block border border-dark-600 rounded-lg overflow-hidden">
+                <div className="flex border-b border-dark-600 bg-dark-800/50">
+                  {twoLine.top.map((v, i) => (
+                    <div key={i} className="w-8 py-1.5 text-dark-300 border-r border-dark-600 last:border-r-0">
+                      {v}
+                    </div>
+                  ))}
+                </div>
+                <div className="flex bg-dark-900/50">
+                  {twoLine.bottom.map((v, i) => (
+                    <div key={i} className="w-8 py-1.5 text-primary-400 font-semibold border-r border-dark-600 last:border-r-0">
+                      {v}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Cycle notation */}
+            <div className="text-center">
+              <span className="text-xs text-dark-500 mr-2">Cycle:</span>
+              <span className="font-mono text-lg text-emerald-400 font-semibold">
+                {cycleNotation}
+              </span>
+            </div>
+          </div>
 
           {/* Toggle axes */}
           <label className="flex items-center gap-2 mt-4 text-sm text-dark-400 cursor-pointer">
