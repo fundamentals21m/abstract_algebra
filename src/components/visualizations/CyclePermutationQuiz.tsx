@@ -171,13 +171,15 @@ function generateMappingToCycleQuestion(): Question {
   const randomWrong = shuffle(elements);
   wrongAnswers.push(`(${randomWrong[0]} ${randomWrong[1]})`);
   wrongAnswers.push(`(${randomWrong[0]} ${randomWrong[1]} ${randomWrong[2]})`);
-
-  const uniqueWrong = [...new Set(wrongAnswers)].filter(w => w !== correctAnswer).slice(0, 3);
-  while (uniqueWrong.length < 3) {
-    uniqueWrong.push('e');
+  wrongAnswers.push(`(${randomWrong[1]} ${randomWrong[2]})`);
+  wrongAnswers.push(`(${randomWrong[0]} ${randomWrong[2]})`);
+  if (correctAnswer !== 'e') {
+    wrongAnswers.push('e');
   }
 
-  const options = shuffle([correctAnswer, ...uniqueWrong.slice(0, 3)]);
+  const uniqueWrong = [...new Set(wrongAnswers)].filter(w => w !== correctAnswer).slice(0, 3);
+
+  const options = shuffle([correctAnswer, ...uniqueWrong]);
 
   const twoLine = `[1 2 3 4] → [${perm.join(' ')}]`;
 
@@ -214,13 +216,15 @@ function generateComposeCyclesQuestion(): Question {
   // Add some plausible wrong answers
   wrongAnswers.push(`(${cycle1[0]} ${cycle2[0]})`);
   wrongAnswers.push(`(${cycle1[0]} ${cycle1[1]} ${cycle2[1]})`);
-
-  const uniqueWrong = [...new Set(wrongAnswers)].filter(w => w !== correctAnswer).slice(0, 3);
-  while (uniqueWrong.length < 3) {
-    uniqueWrong.push('e');
+  wrongAnswers.push(`(${cycle1[1]} ${cycle2[0]})`);
+  wrongAnswers.push(`(${cycle1[0]} ${cycle2[1]})`);
+  if (correctAnswer !== 'e') {
+    wrongAnswers.push('e');
   }
 
-  const options = shuffle([correctAnswer, ...uniqueWrong.slice(0, 3)]);
+  const uniqueWrong = [...new Set(wrongAnswers)].filter(w => w !== correctAnswer).slice(0, 3);
+
+  const options = shuffle([correctAnswer, ...uniqueWrong]);
 
   return {
     type: 'compose_cycles',
