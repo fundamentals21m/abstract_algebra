@@ -65,52 +65,74 @@ const shapeInfo: Record<ShapeType, SymmetryInfo> = {
 
 interface ShapeProps {
   rotation: number;
-  isReflected: boolean;
-  reflectionAxis: 'vertical' | 'horizontal' | 'diagonal1' | 'diagonal2' | null;
+  reflectionAxisIndex: number | null; // null = no reflection, 0-3 = which axis
   showAxes: boolean;
   shape: ShapeType;
 }
 
-function Shape({ rotation, isReflected, showAxes, shape }: ShapeProps) {
+// Reflect a point across a line through origin at given angle
+function reflectPoint(x: number, y: number, axisAngle: number): [number, number] {
+  const cos2 = Math.cos(2 * axisAngle);
+  const sin2 = Math.sin(2 * axisAngle);
+  return [
+    x * cos2 + y * sin2,
+    x * sin2 - y * cos2
+  ];
+}
+
+function Shape({ rotation, reflectionAxisIndex, showAxes, shape }: ShapeProps) {
   const size = 300;
   const center = size / 2;
 
   // Vertex colors for tracking
   const colors = ['#ef4444', '#22c55e', '#3b82f6', '#eab308'];
 
-  const getTrianglePoints = (rot: number, reflected: boolean): string => {
-    const radius = 80;
-    const points: [number, number][] = [];
-
-    for (let i = 0; i < 3; i++) {
-      let angle = (-90 + rot + i * 120) * (Math.PI / 180);
-      let x = center + radius * Math.cos(angle);
-      let y = center + radius * Math.sin(angle);
-      if (reflected) {
-        x = size - x;
-      }
-      points.push([x, y]);
+  // Get reflection axis angle based on shape and axis index
+  const getReflectionAxisAngle = (axisIndex: number): number => {
+    if (shape === 'triangle') {
+      // Triangle: axes through each vertex (at -90°, 30°, 150° from horizontal)
+      // Axis 0: vertical (through top vertex) = 90° = π/2
+      // Axis 1: through bottom-right vertex = -30° = -π/6
+      // Axis 2: through bottom-left vertex = 210° = 7π/6 or -150° = -5π/6
+      const angles = [Math.PI / 2, -Math.PI / 6, -5 * Math.PI / 6];
+      return angles[axisIndex];
+    } else if (shape === 'rectangle') {
+      // Rectangle: vertical and horizontal axes
+      // Axis 0: vertical = 90° = π/2
+      // Axis 1: horizontal = 0°
+      const angles = [Math.PI / 2, 0];
+      return angles[axisIndex];
+    } else {
+      // Square: vertical, horizontal, and two diagonals
+      // Axis 0: vertical = π/2
+      // Axis 1: horizontal = 0
+      // Axis 2: diagonal (top-left to bottom-right) = -π/4
+      // Axis 3: diagonal (top-right to bottom-left) = π/4
+      const angles = [Math.PI / 2, 0, -Math.PI / 4, Math.PI / 4];
+      return angles[axisIndex];
     }
-    return points.map(p => p.join(',')).join(' ');
   };
 
-  const getTriangleVertices = (rot: number, reflected: boolean): [number, number][] => {
+  const getTriangleVertices = (rot: number, reflAxisIdx: number | null): [number, number][] => {
     const radius = 80;
     const points: [number, number][] = [];
 
     for (let i = 0; i < 3; i++) {
-      let angle = (-90 + rot + i * 120) * (Math.PI / 180);
-      let x = center + radius * Math.cos(angle);
-      let y = center + radius * Math.sin(angle);
-      if (reflected) {
-        x = size - x;
+      const angle = (-90 + rot + i * 120) * (Math.PI / 180);
+      let x = radius * Math.cos(angle);
+      let y = radius * Math.sin(angle);
+
+      if (reflAxisIdx !== null) {
+        const axisAngle = getReflectionAxisAngle(reflAxisIdx);
+        [x, y] = reflectPoint(x, y, axisAngle);
       }
-      points.push([x, y]);
+
+      points.push([center + x, center + y]);
     }
     return points;
   };
 
-  const getRectanglePoints = (rot: number, reflected: boolean): string => {
+  const getRectangleVertices = (rot: number, reflAxisIdx: number | null): [number, number][] => {
     const width = 100;
     const height = 60;
     const corners: [number, number][] = [
@@ -121,40 +143,22 @@ function Shape({ rotation, isReflected, showAxes, shape }: ShapeProps) {
     ];
 
     const rotRad = rot * (Math.PI / 180);
-    const points = corners.map(([x, y]) => {
-      let rx = x * Math.cos(rotRad) - y * Math.sin(rotRad);
-      let ry = x * Math.sin(rotRad) + y * Math.cos(rotRad);
-      if (reflected) {
-        rx = -rx;
+    return corners.map(([cx, cy]) => {
+      // Apply rotation first
+      let x = cx * Math.cos(rotRad) - cy * Math.sin(rotRad);
+      let y = cx * Math.sin(rotRad) + cy * Math.cos(rotRad);
+
+      // Then apply reflection if needed
+      if (reflAxisIdx !== null) {
+        const axisAngle = getReflectionAxisAngle(reflAxisIdx);
+        [x, y] = reflectPoint(x, y, axisAngle);
       }
-      return [center + rx, center + ry];
-    });
 
-    return points.map(p => p.join(',')).join(' ');
-  };
-
-  const getRectangleVertices = (rot: number, reflected: boolean): [number, number][] => {
-    const width = 100;
-    const height = 60;
-    const corners: [number, number][] = [
-      [-width, -height],
-      [width, -height],
-      [width, height],
-      [-width, height],
-    ];
-
-    const rotRad = rot * (Math.PI / 180);
-    return corners.map(([x, y]) => {
-      let rx = x * Math.cos(rotRad) - y * Math.sin(rotRad);
-      let ry = x * Math.sin(rotRad) + y * Math.cos(rotRad);
-      if (reflected) {
-        rx = -rx;
-      }
-      return [center + rx, center + ry] as [number, number];
+      return [center + x, center + y] as [number, number];
     });
   };
 
-  const getSquarePoints = (rot: number, reflected: boolean): string => {
+  const getSquareVertices = (rot: number, reflAxisIdx: number | null): [number, number][] => {
     const side = 70;
     const corners: [number, number][] = [
       [-side, -side],
@@ -164,53 +168,34 @@ function Shape({ rotation, isReflected, showAxes, shape }: ShapeProps) {
     ];
 
     const rotRad = rot * (Math.PI / 180);
-    const points = corners.map(([x, y]) => {
-      let rx = x * Math.cos(rotRad) - y * Math.sin(rotRad);
-      let ry = x * Math.sin(rotRad) + y * Math.cos(rotRad);
-      if (reflected) {
-        rx = -rx;
+    return corners.map(([cx, cy]) => {
+      // Apply rotation first
+      let x = cx * Math.cos(rotRad) - cy * Math.sin(rotRad);
+      let y = cx * Math.sin(rotRad) + cy * Math.cos(rotRad);
+
+      // Then apply reflection if needed
+      if (reflAxisIdx !== null) {
+        const axisAngle = getReflectionAxisAngle(reflAxisIdx);
+        [x, y] = reflectPoint(x, y, axisAngle);
       }
-      return [center + rx, center + ry];
-    });
 
-    return points.map(p => p.join(',')).join(' ');
-  };
-
-  const getSquareVertices = (rot: number, reflected: boolean): [number, number][] => {
-    const side = 70;
-    const corners: [number, number][] = [
-      [-side, -side],
-      [side, -side],
-      [side, side],
-      [-side, side],
-    ];
-
-    const rotRad = rot * (Math.PI / 180);
-    return corners.map(([x, y]) => {
-      let rx = x * Math.cos(rotRad) - y * Math.sin(rotRad);
-      let ry = x * Math.sin(rotRad) + y * Math.cos(rotRad);
-      if (reflected) {
-        rx = -rx;
-      }
-      return [center + rx, center + ry] as [number, number];
+      return [center + x, center + y] as [number, number];
     });
   };
 
   const info = shapeInfo[shape];
 
-  let points: string;
   let vertices: [number, number][];
 
   if (shape === 'triangle') {
-    points = getTrianglePoints(rotation, isReflected);
-    vertices = getTriangleVertices(rotation, isReflected);
+    vertices = getTriangleVertices(rotation, reflectionAxisIndex);
   } else if (shape === 'rectangle') {
-    points = getRectanglePoints(rotation, isReflected);
-    vertices = getRectangleVertices(rotation, isReflected);
+    vertices = getRectangleVertices(rotation, reflectionAxisIndex);
   } else {
-    points = getSquarePoints(rotation, isReflected);
-    vertices = getSquareVertices(rotation, isReflected);
+    vertices = getSquareVertices(rotation, reflectionAxisIndex);
   }
+
+  const points = vertices.map(p => p.join(',')).join(' ');
 
   return (
     <svg width={size} height={size} className="bg-dark-950 rounded-xl">
@@ -226,28 +211,31 @@ function Shape({ rotation, isReflected, showAxes, shape }: ShapeProps) {
       />
 
       {/* Symmetry axes */}
-      {showAxes && info.reflectionAxes.map((axis, i) => (
-        <g key={i}>
-          <line
-            x1={axis.x1}
-            y1={axis.y1}
-            x2={axis.x2}
-            y2={axis.y2}
-            stroke="rgba(34, 211, 238, 0.4)"
-            strokeWidth="2"
-            strokeDasharray="6 4"
-          />
-          <text
-            x={(axis.x1 + axis.x2) / 2 + 15}
-            y={(axis.y1 + axis.y2) / 2}
-            fill="#22d3ee"
-            fontSize="11"
-            fontWeight="500"
-          >
-            {axis.label.split(' ')[0]}
-          </text>
-        </g>
-      ))}
+      {showAxes && info.reflectionAxes.map((axis, i) => {
+        const isActive = reflectionAxisIndex === i;
+        return (
+          <g key={i}>
+            <line
+              x1={axis.x1}
+              y1={axis.y1}
+              x2={axis.x2}
+              y2={axis.y2}
+              stroke={isActive ? "#22d3ee" : "rgba(34, 211, 238, 0.3)"}
+              strokeWidth={isActive ? 3 : 2}
+              strokeDasharray={isActive ? "none" : "6 4"}
+            />
+            <text
+              x={(axis.x1 + axis.x2) / 2 + 15}
+              y={(axis.y1 + axis.y2) / 2}
+              fill={isActive ? "#22d3ee" : "rgba(34, 211, 238, 0.6)"}
+              fontSize="11"
+              fontWeight={isActive ? "700" : "500"}
+            >
+              {axis.label.split(' ')[0]}
+            </text>
+          </g>
+        );
+      })}
 
       {/* Center point */}
       <circle cx={center} cy={center} r={4} fill="#6366f1" />
@@ -327,9 +315,9 @@ function Shape({ rotation, isReflected, showAxes, shape }: ShapeProps) {
       ))}
 
       {/* Reflection indicator */}
-      {isReflected && (
+      {reflectionAxisIndex !== null && (
         <text x={center} y={280} textAnchor="middle" fill="#22d3ee" fontSize="12">
-          Reflected
+          Reflected across {info.reflectionAxes[reflectionAxisIndex]?.label.split(' ')[0]}
         </text>
       )}
     </svg>
@@ -343,44 +331,30 @@ interface GeometricSymmetriesProps {
 export function GeometricSymmetries({ initialShape = 'triangle' }: GeometricSymmetriesProps) {
   const [selectedShape, setSelectedShape] = useState<ShapeType>(initialShape);
   const [rotation, setRotation] = useState(0);
-  const [isReflected, setIsReflected] = useState(false);
+  const [reflectionAxisIndex, setReflectionAxisIndex] = useState<number | null>(null);
   const [showAxes, setShowAxes] = useState(true);
-  const [reflectionAxis, setReflectionAxis] = useState<'vertical' | 'horizontal' | 'diagonal1' | 'diagonal2' | null>(null);
 
   const info = shapeInfo[selectedShape];
 
   const handleShapeChange = useCallback((shape: ShapeType) => {
     setSelectedShape(shape);
     setRotation(0);
-    setIsReflected(false);
-    setReflectionAxis(null);
+    setReflectionAxisIndex(null);
   }, []);
 
   const applyRotation = useCallback((angle: number) => {
     setRotation(angle);
-    setIsReflected(false);
+    setReflectionAxisIndex(null);
   }, []);
 
   const applyReflection = useCallback((axisIndex: number) => {
-    setIsReflected(true);
-    // Set which axis for visual feedback
-    if (axisIndex === 0) setReflectionAxis('vertical');
-    else if (axisIndex === 1) setReflectionAxis('horizontal');
-    else if (axisIndex === 2) setReflectionAxis('diagonal1');
-    else setReflectionAxis('diagonal2');
-
-    // For triangle, adjust rotation based on reflection axis
-    if (selectedShape === 'triangle') {
-      setRotation(axisIndex * 120);
-    } else if (selectedShape === 'square') {
-      setRotation(axisIndex * 45);
-    }
-  }, [selectedShape]);
+    setRotation(0); // Reset rotation when applying reflection
+    setReflectionAxisIndex(axisIndex);
+  }, []);
 
   const reset = useCallback(() => {
     setRotation(0);
-    setIsReflected(false);
-    setReflectionAxis(null);
+    setReflectionAxisIndex(null);
   }, []);
 
   return (
@@ -412,8 +386,7 @@ export function GeometricSymmetries({ initialShape = 'triangle' }: GeometricSymm
         <div className="flex flex-col items-center">
           <Shape
             rotation={rotation}
-            isReflected={isReflected}
-            reflectionAxis={reflectionAxis}
+            reflectionAxisIndex={reflectionAxisIndex}
             showAxes={showAxes}
             shape={selectedShape}
           />
@@ -462,7 +435,7 @@ export function GeometricSymmetries({ initialShape = 'triangle' }: GeometricSymm
                   key={rot.angle}
                   onClick={() => applyRotation(rot.angle)}
                   className={`px-3 py-1.5 text-sm rounded-lg transition-all duration-200 ${
-                    rotation === rot.angle && !isReflected
+                    rotation === rot.angle && reflectionAxisIndex === null
                       ? 'bg-orange-500/20 text-orange-400 border border-orange-500/40'
                       : 'bg-dark-800 text-dark-400 hover:bg-dark-700 hover:text-dark-200 border border-dark-700'
                   }`}
@@ -485,12 +458,7 @@ export function GeometricSymmetries({ initialShape = 'triangle' }: GeometricSymm
                   key={i}
                   onClick={() => applyReflection(i)}
                   className={`px-3 py-1.5 text-sm rounded-lg transition-all duration-200 ${
-                    isReflected && (
-                      (reflectionAxis === 'vertical' && i === 0) ||
-                      (reflectionAxis === 'horizontal' && i === 1) ||
-                      (reflectionAxis === 'diagonal1' && i === 2) ||
-                      (reflectionAxis === 'diagonal2' && i === 3)
-                    )
+                    reflectionAxisIndex === i
                       ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40'
                       : 'bg-dark-800 text-dark-400 hover:bg-dark-700 hover:text-dark-200 border border-dark-700'
                   }`}
