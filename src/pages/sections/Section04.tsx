@@ -1,6 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
-import { SymmetryAnimationDemo, PermutationComposerDemo, CayleyTableDemo } from '../../components/visualizations';
+import { SymmetryAnimationDemo, PermutationComposerDemo, CayleyTableDemo, GeometricSymmetries } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section04() {
@@ -52,6 +52,105 @@ export default function Section04() {
             </p>
             <SymmetryAnimationDemo />
           </div>
+        </section>
+
+        {/* Geometric Shape Symmetries - Focused Section */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Symmetries of Common Shapes</h3>
+
+          <p className="text-dark-300 mb-4">
+            Let's examine three familiar shapes and their symmetry groups in detail. Notice how
+            the structure of each shape determines its symmetries.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="card">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-red-500/20 to-red-600/10 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-red-400" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="12,2 22,20 2,20" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-dark-100">Equilateral Triangle</h4>
+                  <p className="text-xs text-primary-400 font-mono">D₃</p>
+                </div>
+              </div>
+              <ul className="text-sm text-dark-400 space-y-1">
+                <li>3 rotational symmetries</li>
+                <li>3 reflection symmetries</li>
+                <li>Order: 6</li>
+              </ul>
+            </div>
+
+            <div className="card">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-blue-600/10 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="3" y="6" width="18" height="12" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-dark-100">Rectangle</h4>
+                  <p className="text-xs text-primary-400 font-mono">D₂ ≅ V₄</p>
+                </div>
+              </div>
+              <ul className="text-sm text-dark-400 space-y-1">
+                <li>2 rotational symmetries</li>
+                <li>2 reflection symmetries</li>
+                <li>Order: 4 (abelian!)</li>
+              </ul>
+            </div>
+
+            <div className="card">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-emerald-400" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="4" y="4" width="16" height="16" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-dark-100">Square</h4>
+                  <p className="text-xs text-primary-400 font-mono">D₄</p>
+                </div>
+              </div>
+              <ul className="text-sm text-dark-400 space-y-1">
+                <li>4 rotational symmetries</li>
+                <li>4 reflection symmetries</li>
+                <li>Order: 8</li>
+              </ul>
+            </div>
+          </div>
+
+          <GeometricSymmetries />
+
+          <div className="callout-info mt-6">
+            <p className="font-semibold mb-2">Why is the rectangle special?</p>
+            <p className="text-sm">
+              Unlike the triangle and square, the rectangle (when not a square) has only 180° rotational
+              symmetry. This makes <Math>D_2</Math> isomorphic to the <strong>Klein 4-group</strong> <Math>V_4</Math>,
+              which is the unique non-cyclic group of order 4. It's also abelian — one of only two
+              dihedral groups that are abelian (the other being <Math>D_1</Math>).
+            </p>
+          </div>
+
+          <Example title="Vertex Tracking">
+            <p className="mb-3">
+              Watch how the colored vertices move under each symmetry. Vertex 1 (red) helps you track
+              the transformation:
+            </p>
+            <ul className="list-disc list-inside space-y-1 text-sm text-dark-400">
+              <li>
+                <strong>Rotations</strong> move all vertices together in a cycle
+              </li>
+              <li>
+                <strong>Reflections</strong> flip the shape across an axis, swapping some vertices
+              </li>
+              <li>
+                Composing a rotation with a reflection gives a different reflection
+              </li>
+            </ul>
+          </Example>
         </section>
 
         {/* D_n Relations */}
@@ -248,6 +347,12 @@ export default function Section04() {
               <Math>D_n</Math> is the group of symmetries of a regular <Math>n</Math>-gon with <Math>2n</Math> elements.
             </li>
             <li>
+              <strong>Common shapes:</strong> Triangle → <Math>D_3</Math> (order 6), Rectangle → <Math>{'D_2 \\cong V_4'}</Math> (order 4), Square → <Math>D_4</Math> (order 8).
+            </li>
+            <li>
+              <Math>D_2</Math> is special: it's abelian and isomorphic to the Klein 4-group.
+            </li>
+            <li>
               <Math>S_n</Math> is the group of all permutations on <Math>n</Math> elements with <Math>n!</Math> elements.
             </li>
             <li>
@@ -257,7 +362,7 @@ export default function Section04() {
               Every permutation has a unique disjoint cycle decomposition.
             </li>
             <li>
-              <Math>D_n</Math> embeds naturally into <Math>S_n</Math>.
+              <Math>D_n</Math> embeds naturally into <Math>S_n</Math> by labeling vertices.
             </li>
           </ul>
         </section>
