@@ -1,4 +1,4 @@
-export { CayleyTable, CayleyTableDemo, ZnCayleyTable, DnCayleyTable, SnCayleyTable } from './CayleyTable';
+export { CayleyTable, CayleyTableDemo, ZnCayleyTable, DnCayleyTable, SnCayleyTable, AnCayleyTable, V4CayleyTable } from './CayleyTable';
 export { SymmetryAnimation, SymmetryAnimationDemo } from './SymmetryAnimation';
 export { PermutationComposer, PermutationComposerDemo } from './PermutationComposer';
 export { SubgroupLattice, SubgroupLatticeDemo } from './SubgroupLattice';

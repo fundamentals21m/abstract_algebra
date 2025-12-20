@@ -142,6 +142,33 @@ export function createDn(n: number): Group<DihedralElement> {
 }
 
 /**
+ * Create the Klein four-group V₄ (also known as the Vierergruppe)
+ * V₄ = {e, a, b, c} with a² = b² = c² = e, ab = c, bc = a, ca = b
+ * Isomorphic to Z₂ × Z₂
+ */
+export function createV4(): Group<string> {
+  const elements = ['e', 'a', 'b', 'c'];
+
+  // Cayley table for V4
+  const table: Record<string, Record<string, string>> = {
+    'e': { 'e': 'e', 'a': 'a', 'b': 'b', 'c': 'c' },
+    'a': { 'e': 'a', 'a': 'e', 'b': 'c', 'c': 'b' },
+    'b': { 'e': 'b', 'a': 'c', 'b': 'e', 'c': 'a' },
+    'c': { 'e': 'c', 'a': 'b', 'b': 'a', 'c': 'e' },
+  };
+
+  return {
+    name: 'V₄',
+    elements,
+    identity: 'e',
+    operation: (x, y) => table[x][y],
+    inverse: (x) => x, // All elements are self-inverse in V4
+    equals: (x, y) => x === y,
+    toString: (x) => x,
+  };
+}
+
+/**
  * Get the order of an element in a group
  */
 export function elementOrder<T>(group: Group<T>, element: T): number {

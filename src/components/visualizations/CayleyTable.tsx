@@ -160,8 +160,8 @@ interface PresetCayleyTableProps {
   colorByOrder?: boolean;
 }
 
-import { createZn, createDn } from '../../lib/algebra/groups';
-import { createSn } from '../../lib/algebra/permutations';
+import { createZn, createDn, createV4 } from '../../lib/algebra/groups';
+import { createSn, createAn } from '../../lib/algebra/permutations';
 
 export function ZnCayleyTable({ n, ...props }: PresetCayleyTableProps & { n: number }) {
   const group = useMemo(() => createZn(n), [n]);
@@ -178,24 +178,80 @@ export function SnCayleyTable({ n, ...props }: PresetCayleyTableProps & { n: num
   return <CayleyTable group={group} {...props} />;
 }
 
+export function AnCayleyTable({ n, ...props }: PresetCayleyTableProps & { n: number }) {
+  const group = useMemo(() => createAn(n), [n]);
+  return <CayleyTable group={group} {...props} />;
+}
+
+export function V4CayleyTable(props: PresetCayleyTableProps) {
+  const group = useMemo(() => createV4(), []);
+  return <CayleyTable group={group} {...props} />;
+}
+
 // Interactive demo wrapper
+type GroupType = 'Zn' | 'Dn' | 'Sn' | 'An' | 'V4';
+
 interface CayleyTableDemoProps {
-  defaultGroup?: 'Zn' | 'Dn' | 'Sn';
+  defaultGroup?: GroupType;
   defaultN?: number;
 }
 
 export function CayleyTableDemo({ defaultGroup = 'Zn', defaultN = 4 }: CayleyTableDemoProps) {
-  const [groupType, setGroupType] = useState<'Zn' | 'Dn' | 'Sn'>(defaultGroup);
+  const [groupType, setGroupType] = useState<GroupType>(defaultGroup);
   const [n, setN] = useState(defaultN);
   const [showOrders, setShowOrders] = useState(false);
   const [colorByOrder, setColorByOrder] = useState(true);
 
+  // Check if group type needs n parameter
+  const needsN = groupType !== 'V4';
+
   // Limit n based on group type to prevent huge tables
-  const maxN = groupType === 'Sn' ? 4 : groupType === 'Dn' ? 6 : 12;
-  const minN = groupType === 'Dn' ? 3 : 1;
+  const getMaxN = () => {
+    switch (groupType) {
+      case 'Sn': return 4;
+      case 'An': return 5;
+      case 'Dn': return 6;
+      default: return 12;
+    }
+  };
+
+  const getMinN = () => {
+    switch (groupType) {
+      case 'Dn': return 3;
+      case 'An': return 3;
+      default: return 1;
+    }
+  };
+
+  const maxN = getMaxN();
+  const minN = getMinN();
 
   const handleNChange = (newN: number) => {
     setN(Math.max(minN, Math.min(maxN, newN)));
+  };
+
+  const handleGroupChange = (newType: GroupType) => {
+    setGroupType(newType);
+    // Adjust n if needed based on new group type
+    const newMinN = newType === 'Dn' || newType === 'An' ? 3 : 1;
+    const newMaxN = newType === 'Sn' ? 4 : newType === 'An' ? 5 : newType === 'Dn' ? 6 : 12;
+    if (n < newMinN) setN(newMinN);
+    if (n > newMaxN) setN(newMaxN);
+  };
+
+  const getGroupDescription = () => {
+    switch (groupType) {
+      case 'Zn':
+        return `This is the cyclic group of order ${n} under addition mod ${n}.`;
+      case 'Dn':
+        return `This is the dihedral group of order ${2 * n} (symmetries of a regular ${n}-gon).`;
+      case 'Sn':
+        return `This is the symmetric group of order ${factorial(n)} (all permutations of ${n} elements).`;
+      case 'An':
+        return `This is the alternating group of order ${factorial(n) / 2} (even permutations of ${n} elements).`;
+      case 'V4':
+        return `This is the Klein four-group (Vierergruppe), order 4, isomorphic to Z₂ × Z₂. All non-identity elements have order 2.`;
+    }
   };
 
   return (
@@ -208,32 +264,36 @@ export function CayleyTableDemo({ defaultGroup = 'Zn', defaultN = 4 }: CayleyTab
           <label className="text-sm text-dark-400">Group:</label>
           <select
             value={groupType}
-            onChange={(e) => {
-              const newType = e.target.value as 'Zn' | 'Dn' | 'Sn';
-              setGroupType(newType);
-              // Adjust n if needed
-              if (newType === 'Dn' && n < 3) setN(3);
-              if (newType === 'Sn' && n > 4) setN(4);
-            }}
-            className="input w-24"
+            onChange={(e) => handleGroupChange(e.target.value as GroupType)}
+            className="input w-28"
           >
-            <option value="Zn">Zₙ</option>
-            <option value="Dn">Dₙ</option>
-            <option value="Sn">Sₙ</option>
+            <optgroup label="Cyclic & Dihedral">
+              <option value="Zn">Zₙ</option>
+              <option value="Dn">Dₙ</option>
+            </optgroup>
+            <optgroup label="Permutation Groups">
+              <option value="Sn">Sₙ</option>
+              <option value="An">Aₙ</option>
+            </optgroup>
+            <optgroup label="Special Groups">
+              <option value="V4">V₄ (Klein)</option>
+            </optgroup>
           </select>
         </div>
 
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-dark-400">n:</label>
-          <input
-            type="number"
-            value={n}
-            onChange={(e) => handleNChange(parseInt(e.target.value) || minN)}
-            min={minN}
-            max={maxN}
-            className="input w-20"
-          />
-        </div>
+        {needsN && (
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-dark-400">n:</label>
+            <input
+              type="number"
+              value={n}
+              onChange={(e) => handleNChange(parseInt(e.target.value) || minN)}
+              min={minN}
+              max={maxN}
+              className="input w-20"
+            />
+          </div>
+        )}
 
         <label className="flex items-center gap-2 text-sm text-dark-400 cursor-pointer">
           <input
@@ -267,15 +327,19 @@ export function CayleyTableDemo({ defaultGroup = 'Zn', defaultN = 4 }: CayleyTab
         {groupType === 'Sn' && (
           <SnCayleyTable n={n} showOrders={showOrders} colorByOrder={colorByOrder} />
         )}
+        {groupType === 'An' && (
+          <AnCayleyTable n={n} showOrders={showOrders} colorByOrder={colorByOrder} />
+        )}
+        {groupType === 'V4' && (
+          <V4CayleyTable showOrders={showOrders} colorByOrder={colorByOrder} />
+        )}
       </div>
 
       {/* Info */}
       <div className="mt-4 text-sm text-dark-400">
         <p>
           Click on any cell to see the operation. Hover over rows/columns to highlight.
-          {groupType === 'Zn' && ` This is the cyclic group of order ${n} under addition mod ${n}.`}
-          {groupType === 'Dn' && ` This is the dihedral group of order ${2 * n} (symmetries of a regular ${n}-gon).`}
-          {groupType === 'Sn' && ` This is the symmetric group of order ${factorial(n)} (all permutations of ${n} elements).`}
+          {' '}{getGroupDescription()}
         </p>
       </div>
     </div>
