@@ -291,24 +291,40 @@ function Shape({ rotation, isReflected, showAxes, shape }: ShapeProps) {
       {/* Vertices with labels */}
       {vertices.map(([x, y], i) => (
         <motion.g key={i} initial={false} animate={{ x: 0, y: 0 }}>
+          {/* Outer ring for emphasis */}
           <motion.circle
             cx={x}
             cy={y}
-            r={i === 0 ? 10 : 7}
+            r={18}
+            fill="rgba(15, 23, 42, 0.8)"
+            stroke={colors[i % colors.length]}
+            strokeWidth="3"
+            initial={false}
+            animate={{ cx: x, cy: y }}
+            transition={{ duration: 0.4, ease: 'easeInOut' }}
+          />
+          {/* Inner colored circle */}
+          <motion.circle
+            cx={x}
+            cy={y}
+            r={14}
             fill={colors[i % colors.length]}
             initial={false}
             animate={{ cx: x, cy: y }}
             transition={{ duration: 0.4, ease: 'easeInOut' }}
           />
+          {/* Vertex number label inside circle */}
           <motion.text
             x={x}
-            y={y - 14}
+            y={y}
+            dy="0.35em"
             textAnchor="middle"
-            fill="#e2e8f0"
-            fontSize="12"
-            fontWeight="600"
+            fill="#ffffff"
+            fontSize="14"
+            fontWeight="700"
+            style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
             initial={false}
-            animate={{ x, y: y - 14 }}
+            animate={{ x, y }}
             transition={{ duration: 0.4, ease: 'easeInOut' }}
           >
             {i + 1}
