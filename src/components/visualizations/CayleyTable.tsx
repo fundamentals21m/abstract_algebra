@@ -107,7 +107,7 @@ export function CayleyTable<T>({
 
   // Auto-detect if we should use compact/indices mode based on group size
   const groupSize = group.elements.length;
-  const isLargeGroup = groupSize > 12;
+  const isLargeGroup = groupSize >= 12; // A4 has 12 elements
   const isVeryLargeGroup = groupSize > 24;
   const isHugeGroup = groupSize > 60; // S5 (120), A5 (60)
 
