@@ -776,6 +776,167 @@ function PolygonSymmetryPreview({ n, element, size = 180 }: PolygonSymmetryPrevi
   );
 }
 
+// Rectangle visualization for V4 (Klein four-group ≅ D2)
+interface RectangleSymmetryPreviewProps {
+  element?: string; // 'e', 'a', 'b', 'c'
+  size?: number;
+}
+
+// V4 elements as rectangle symmetries:
+// e = identity, a = 180° rotation, b = horizontal reflection, c = vertical reflection
+function v4PermutationFromElement(element: string): number[] {
+  // Rectangle vertices: 1=top-left, 2=top-right, 3=bottom-right, 4=bottom-left
+  switch (element) {
+    case 'a': return [3, 4, 1, 2]; // 180° rotation: 1→3, 2→4, 3→1, 4→2
+    case 'b': return [4, 3, 2, 1]; // horizontal reflection: 1↔4, 2↔3
+    case 'c': return [2, 1, 4, 3]; // vertical reflection: 1↔2, 3↔4
+    default: return [1, 2, 3, 4]; // identity
+  }
+}
+
+function RectangleSymmetryPreview({ element = 'e', size = 180 }: RectangleSymmetryPreviewProps) {
+  const center = size / 2;
+  const width = size * 0.35;
+  const height = size * 0.22;
+  const vertexRadius = size * 0.08;
+
+  // Rectangle vertices: top-left, top-right, bottom-right, bottom-left
+  const positions: [number, number][] = [
+    [center - width, center - height],
+    [center + width, center - height],
+    [center + width, center + height],
+    [center - width, center + height],
+  ];
+
+  const perm = v4PermutationFromElement(element);
+  const cycleNotation = permToCycleNotation(perm);
+
+  const polygonPoints = positions.map(p => p.join(',')).join(' ');
+
+  const getTransformLabel = () => {
+    switch (element) {
+      case 'a': return '↻ 180°';
+      case 'b': return '↔ horiz';
+      case 'c': return '↕ vert';
+      default: return 'identity';
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center">
+      <svg width={size} height={size} className="bg-dark-950 rounded-lg">
+        {/* Background */}
+        <rect
+          x={10}
+          y={10}
+          width={size - 20}
+          height={size - 20}
+          fill="none"
+          stroke="rgba(99, 102, 241, 0.1)"
+          strokeWidth="1"
+          strokeDasharray="3 3"
+          rx="4"
+        />
+
+        {/* Center point */}
+        <circle cx={center} cy={center} r={3} fill="#6366f1" />
+
+        {/* Symmetry axes */}
+        <line
+          x1={center}
+          y1={center - height - 20}
+          x2={center}
+          y2={center + height + 20}
+          stroke={element === 'c' ? '#22d3ee' : 'rgba(34, 211, 238, 0.2)'}
+          strokeWidth={element === 'c' ? 2 : 1}
+          strokeDasharray={element === 'c' ? 'none' : '4 4'}
+        />
+        <line
+          x1={center - width - 20}
+          y1={center}
+          x2={center + width + 20}
+          y2={center}
+          stroke={element === 'b' ? '#22d3ee' : 'rgba(34, 211, 238, 0.2)'}
+          strokeWidth={element === 'b' ? 2 : 1}
+          strokeDasharray={element === 'b' ? 'none' : '4 4'}
+        />
+
+        {/* Rectangle outline */}
+        <polygon
+          points={polygonPoints}
+          fill="rgba(99, 102, 241, 0.1)"
+          stroke="#6366f1"
+          strokeWidth="2"
+        />
+
+        {/* Vertices with labels */}
+        {positions.map(([x, y], i) => {
+          const label = perm[i];
+          const color = vertexColors[(label - 1) % vertexColors.length];
+
+          return (
+            <g key={i}>
+              <motion.circle
+                cx={x}
+                cy={y}
+                r={vertexRadius}
+                fill="#0f172a"
+                stroke={color}
+                strokeWidth="2"
+                initial={false}
+                animate={{ cx: x, cy: y }}
+                transition={{ duration: 0.3 }}
+              />
+              <motion.circle
+                cx={x}
+                cy={y}
+                r={vertexRadius - 3}
+                fill={color}
+                initial={false}
+                animate={{ cx: x, cy: y }}
+                transition={{ duration: 0.3 }}
+              />
+              <motion.text
+                x={x}
+                y={y}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fill="#ffffff"
+                fontSize={size * 0.07}
+                fontWeight="bold"
+                fontFamily="system-ui"
+                initial={false}
+                animate={{ x, y }}
+                transition={{ duration: 0.3 }}
+              >
+                {label}
+              </motion.text>
+            </g>
+          );
+        })}
+
+        {/* Transform indicator */}
+        <text
+          x={center}
+          y={size - 10}
+          textAnchor="middle"
+          fill={element === 'e' ? '#6366f1' : element === 'a' ? '#f97316' : '#22d3ee'}
+          fontSize="10"
+        >
+          {getTransformLabel()}
+        </text>
+      </svg>
+
+      {/* Permutation display */}
+      <div className="mt-2 text-center">
+        <span className="font-mono text-sm text-emerald-400 font-semibold">
+          {cycleNotation}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 // Specialized demo for Section 3: Abelian groups
 // Restricts to groups of order ≤ 8 and highlights non-commutative cells
 type AbelianDemoGroupType = 'Zn' | 'Dn' | 'Sn' | 'V4';
@@ -830,9 +991,22 @@ function AbelianSnTable({ n, highlightNonAbelian }: { n: number; highlightNonAbe
   return <CayleyTable group={group} highlightNonAbelian={highlightNonAbelian} colorByOrder={true} />;
 }
 
-function AbelianV4Table({ highlightNonAbelian }: { highlightNonAbelian: boolean }) {
+function AbelianV4Table({
+  highlightNonAbelian,
+  onCellHover
+}: {
+  highlightNonAbelian: boolean;
+  onCellHover?: (row: number, col: number, result: string) => void;
+}) {
   const group = useMemo(() => createV4(), []);
-  return <CayleyTable group={group} highlightNonAbelian={highlightNonAbelian} colorByOrder={true} />;
+  return (
+    <CayleyTable
+      group={group}
+      highlightNonAbelian={highlightNonAbelian}
+      colorByOrder={true}
+      onCellHover={onCellHover}
+    />
+  );
 }
 
 export function AbelianCayleyTableDemo({
@@ -842,7 +1016,8 @@ export function AbelianCayleyTableDemo({
   const [groupType, setGroupType] = useState<AbelianDemoGroupType>(defaultGroup);
   const [n, setN] = useState(defaultN);
   const [highlightNonAbelian, setHighlightNonAbelian] = useState(true);
-  const [hoveredElement, setHoveredElement] = useState<DihedralElement | null>(null);
+  const [hoveredDnElement, setHoveredDnElement] = useState<DihedralElement | null>(null);
+  const [hoveredV4Element, setHoveredV4Element] = useState<string>('e');
 
   // Restricted limits for 8x8 max
   const getMaxN = () => {
@@ -976,7 +1151,7 @@ export function AbelianCayleyTableDemo({
       )}
 
       {/* Main content: Table + optional geometric preview */}
-      <div className={`flex flex-col ${groupType === 'Dn' ? 'lg:flex-row' : ''} gap-6`}>
+      <div className={`flex flex-col ${(groupType === 'Dn' || groupType === 'V4') ? 'lg:flex-row' : ''} gap-6`}>
         {/* Table - use separate components to avoid type issues */}
         <div className="flex-1 overflow-x-auto">
           {groupType === 'Zn' && <AbelianZnTable n={n} highlightNonAbelian={highlightNonAbelian} />}
@@ -984,11 +1159,16 @@ export function AbelianCayleyTableDemo({
             <AbelianDnTable
               n={n}
               highlightNonAbelian={highlightNonAbelian}
-              onCellHover={(_, __, result) => setHoveredElement(result)}
+              onCellHover={(_, __, result) => setHoveredDnElement(result)}
             />
           )}
           {groupType === 'Sn' && <AbelianSnTable n={n} highlightNonAbelian={highlightNonAbelian} />}
-          {groupType === 'V4' && <AbelianV4Table highlightNonAbelian={highlightNonAbelian} />}
+          {groupType === 'V4' && (
+            <AbelianV4Table
+              highlightNonAbelian={highlightNonAbelian}
+              onCellHover={(_, __, result) => setHoveredV4Element(result)}
+            />
+          )}
         </div>
 
         {/* Geometric preview for Dn */}
@@ -1000,7 +1180,25 @@ export function AbelianCayleyTableDemo({
               </h5>
               <PolygonSymmetryPreview
                 n={n}
-                element={hoveredElement ?? { rotation: 0, isReflection: false }}
+                element={hoveredDnElement ?? { rotation: 0, isReflection: false }}
+                size={200}
+              />
+              <p className="text-xs text-dark-500 mt-3 text-center">
+                Hover over table cells to see the transformation
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Geometric preview for V4 (rectangle) */}
+        {groupType === 'V4' && (
+          <div className="lg:w-64 flex-shrink-0">
+            <div className="p-4 bg-dark-800/50 rounded-lg">
+              <h5 className="text-sm font-semibold text-dark-300 mb-3 text-center">
+                Rectangle symmetry (V₄ ≅ D₂)
+              </h5>
+              <RectangleSymmetryPreview
+                element={hoveredV4Element}
                 size={200}
               />
               <p className="text-xs text-dark-500 mt-3 text-center">

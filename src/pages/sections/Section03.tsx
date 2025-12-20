@@ -1,6 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
-import { CayleyTableDemo, AbelianCayleyTableDemo } from '../../components/visualizations';
+import { AbelianCayleyTableDemo } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section03() {
@@ -83,10 +83,6 @@ export default function Section03() {
             </div>
           </Example>
 
-          <div className="mt-6">
-            <h4 className="font-semibold mb-3">Interactive: <Math>{'\\mathbb{Z}_n'}</Math> Cayley Table</h4>
-            <CayleyTableDemo defaultGroup="Zn" defaultN={6} />
-          </div>
         </section>
 
         {/* Multiplicative Groups */}
