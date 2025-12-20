@@ -103,6 +103,7 @@ function GroupAxiomChecker() {
         [2, 3, 0, 1],
         [3, 2, 1, 0],
       ],
+      description: 'A valid group of order 4',
     },
     {
       name: 'Z₄ (cyclic)',
@@ -112,24 +113,27 @@ function GroupAxiomChecker() {
         [2, 3, 0, 1],
         [3, 0, 1, 2],
       ],
+      description: 'Integers mod 4 under addition',
     },
     {
-      name: 'Not a group (no identity)',
+      name: '(ℤ₄, ×)',
       table: [
-        [1, 2, 3, 0],
-        [2, 3, 0, 1],
-        [3, 0, 1, 2],
+        [0, 0, 0, 0],
         [0, 1, 2, 3],
+        [0, 2, 0, 2],
+        [0, 3, 2, 1],
       ],
+      description: 'Integers mod 4 under multiplication — 0 and 2 have no inverse',
     },
     {
-      name: 'Not associative',
+      name: '(ℤ₄, −)',
       table: [
-        [0, 1, 2, 3],
+        [0, 3, 2, 1],
         [1, 0, 3, 2],
-        [2, 3, 1, 0],
-        [3, 2, 0, 1],
+        [2, 1, 0, 3],
+        [3, 2, 1, 0],
       ],
+      description: 'Integers mod 4 under subtraction — no identity, not associative',
     },
   ];
 
@@ -143,6 +147,7 @@ function GroupAxiomChecker() {
             key={i}
             onClick={() => setTable(preset.table)}
             className="btn-ghost text-sm"
+            title={preset.description}
           >
             {preset.name}
           </button>
