@@ -106,9 +106,9 @@ function Shape({ rotation, reflectionAxisIndex, showAxes, shape }: ShapeProps) {
       // Square: vertical, horizontal, and two diagonals
       // Axis 0: vertical = π/2
       // Axis 1: horizontal = 0
-      // Axis 2: diagonal (top-left to bottom-right) = -π/4
-      // Axis 3: diagonal (top-right to bottom-left) = π/4
-      const angles = [Math.PI / 2, 0, -Math.PI / 4, Math.PI / 4];
+      // Axis 2: diagonal (top-left to bottom-right) = π/4 in SVG coords (y down)
+      // Axis 3: diagonal (top-right to bottom-left) = -π/4 in SVG coords
+      const angles = [Math.PI / 2, 0, Math.PI / 4, -Math.PI / 4];
       return angles[axisIndex];
     }
   };
@@ -381,20 +381,24 @@ function computePermutation(
     return result;
   } else {
     // Square reflections:
-    // Axis 0 (vertical): swaps 1↔2, 3↔4
+    // Axis 0 (vertical): swaps 1↔2, 4↔3
     // Axis 1 (horizontal): swaps 1↔4, 2↔3
-    // Axis 2 (diagonal \): swaps 2↔4, fixes 1,3
-    // Axis 3 (diagonal /): swaps 1↔3, fixes 2,4
+    // Axis 2 (diagonal TL-BR, y=x): swaps 2↔4, fixes 1,3
+    // Axis 3 (diagonal TR-BL, y=-x): swaps 1↔3, fixes 2,4
     const result = [...rotated];
     if (reflectionAxisIndex === 0) {
+      // Vertical axis: left↔right
       [result[0], result[1]] = [result[1], result[0]];
       [result[2], result[3]] = [result[3], result[2]];
     } else if (reflectionAxisIndex === 1) {
+      // Horizontal axis: top↔bottom
       [result[0], result[3]] = [result[3], result[0]];
       [result[1], result[2]] = [result[2], result[1]];
     } else if (reflectionAxisIndex === 2) {
+      // Main diagonal (TL-BR): swaps 2↔4
       [result[1], result[3]] = [result[3], result[1]];
     } else {
+      // Anti-diagonal (TR-BL): swaps 1↔3
       [result[0], result[2]] = [result[2], result[0]];
     }
     return result;
