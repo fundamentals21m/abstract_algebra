@@ -1,6 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
-import { CayleyTableDemo } from '../../components/visualizations';
+import { CayleyTableDemo, AbelianCayleyTableDemo } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section03() {
@@ -27,6 +27,10 @@ export default function Section03() {
             Named after Niels Henrik Abel (1802-1829), a Norwegian mathematician.
           </p>
         </Definition>
+
+        <div className="mt-6">
+          <AbelianCayleyTableDemo defaultGroup="Zn" defaultN={4} />
+        </div>
 
         {/* The Integers */}
         <section>

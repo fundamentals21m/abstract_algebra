@@ -9,6 +9,7 @@ interface CayleyTableProps<T> {
   colorByOrder?: boolean;
   compact?: boolean; // Force compact mode
   useIndices?: boolean; // Use numeric indices instead of element names
+  highlightNonAbelian?: boolean; // Highlight cells where ab ≠ ba
 }
 
 // Color palette for different element orders
@@ -100,6 +101,7 @@ export function CayleyTable<T>({
   colorByOrder = false,
   compact: forceCompact,
   useIndices: forceUseIndices,
+  highlightNonAbelian = false,
 }: CayleyTableProps<T>) {
   const [highlightedRow, setHighlightedRow] = useState<number | null>(null);
   const [highlightedCol, setHighlightedCol] = useState<number | null>(null);
@@ -116,6 +118,23 @@ export function CayleyTable<T>({
 
   // Compute Cayley table
   const table = useMemo(() => cayleyTable(group), [group]);
+
+  // Compute non-commutative pairs for highlighting
+  const nonAbelianCells = useMemo(() => {
+    if (!highlightNonAbelian) return new Set<string>();
+    const cells = new Set<string>();
+    for (let i = 0; i < groupSize; i++) {
+      for (let j = i + 1; j < groupSize; j++) {
+        const ab = group.toString(table[i][j].result);
+        const ba = group.toString(table[j][i].result);
+        if (ab !== ba) {
+          cells.add(`${i},${j}`);
+          cells.add(`${j},${i}`);
+        }
+      }
+    }
+    return cells;
+  }, [group, table, groupSize, highlightNonAbelian]);
 
   // Create element to index mapping
   const elementToIndex = useMemo(() => {
@@ -249,6 +268,7 @@ export function CayleyTable<T>({
                   const isHighlighted = highlightedRow === i || highlightedCol === j;
                   const isSelected = selectedCell?.row === i && selectedCell?.col === j;
                   const isIdentityCell = highlightIdentity && isIdentity(cell.result);
+                  const isNonAbelianCell = nonAbelianCells.has(`${i},${j}`);
 
                   return (
                     <td
@@ -256,6 +276,8 @@ export function CayleyTable<T>({
                       className={`cursor-pointer transition-all font-mono ${cellClasses} ${
                         isHighlighted ? 'bg-primary-900/30' : ''
                       } ${isSelected ? 'bg-primary-700/50 ring-1 ring-primary-500' : ''} ${
+                        isNonAbelianCell ? 'ring-2 ring-orange-500 bg-orange-500/20' : ''
+                      } ${
                         isIdentityCell
                           ? 'text-green-400 font-semibold'
                           : useIndices && colorByOrder
@@ -316,6 +338,7 @@ interface PresetCayleyTableProps {
   colorByOrder?: boolean;
   compact?: boolean;
   useIndices?: boolean;
+  highlightNonAbelian?: boolean;
 }
 
 import { createZn, createDn, createV4 } from '../../lib/algebra/groups';
@@ -548,4 +571,206 @@ export function CayleyTableDemo({ defaultGroup = 'Zn', defaultN = 4 }: CayleyTab
 function factorial(n: number): number {
   if (n <= 1) return 1;
   return n * factorial(n - 1);
+}
+
+// Specialized demo for Section 3: Abelian groups
+// Restricts to groups of order ≤ 8 and highlights non-commutative cells
+type AbelianDemoGroupType = 'Zn' | 'Dn' | 'Sn' | 'V4';
+
+interface AbelianCayleyTableDemoProps {
+  defaultGroup?: AbelianDemoGroupType;
+  defaultN?: number;
+}
+
+// Helper to check if a group is abelian and count non-commutative pairs
+function checkAbelian<T>(group: Group<T>): { isAbelian: boolean; nonCommutativePairs: number } {
+  let pairs = 0;
+  const table = cayleyTable(group);
+  for (let i = 0; i < group.elements.length; i++) {
+    for (let j = i + 1; j < group.elements.length; j++) {
+      const ab = group.toString(table[i][j].result);
+      const ba = group.toString(table[j][i].result);
+      if (ab !== ba) pairs++;
+    }
+  }
+  return { isAbelian: pairs === 0, nonCommutativePairs: pairs };
+}
+
+// Inner component for each group type to avoid type issues
+function AbelianZnTable({ n, highlightNonAbelian }: { n: number; highlightNonAbelian: boolean }) {
+  const group = useMemo(() => createZn(n), [n]);
+  return <CayleyTable group={group} highlightNonAbelian={highlightNonAbelian} colorByOrder={true} />;
+}
+
+function AbelianDnTable({ n, highlightNonAbelian }: { n: number; highlightNonAbelian: boolean }) {
+  const group = useMemo(() => createDn(n), [n]);
+  return <CayleyTable group={group} highlightNonAbelian={highlightNonAbelian} colorByOrder={true} />;
+}
+
+function AbelianSnTable({ n, highlightNonAbelian }: { n: number; highlightNonAbelian: boolean }) {
+  const group = useMemo(() => createSn(n), [n]);
+  return <CayleyTable group={group} highlightNonAbelian={highlightNonAbelian} colorByOrder={true} />;
+}
+
+function AbelianV4Table({ highlightNonAbelian }: { highlightNonAbelian: boolean }) {
+  const group = useMemo(() => createV4(), []);
+  return <CayleyTable group={group} highlightNonAbelian={highlightNonAbelian} colorByOrder={true} />;
+}
+
+export function AbelianCayleyTableDemo({
+  defaultGroup = 'Zn',
+  defaultN = 4
+}: AbelianCayleyTableDemoProps) {
+  const [groupType, setGroupType] = useState<AbelianDemoGroupType>(defaultGroup);
+  const [n, setN] = useState(defaultN);
+  const [highlightNonAbelian, setHighlightNonAbelian] = useState(true);
+
+  // Restricted limits for 8x8 max
+  const getMaxN = () => {
+    switch (groupType) {
+      case 'Sn': return 3; // S3 has 6 elements
+      case 'Dn': return 4; // D4 has 8 elements
+      default: return 8;
+    }
+  };
+
+  const getMinN = () => {
+    switch (groupType) {
+      case 'Dn': return 3;
+      case 'Sn': return 2;
+      default: return 2;
+    }
+  };
+
+  const maxN = getMaxN();
+  const minN = getMinN();
+  const needsN = groupType !== 'V4';
+
+  // Check if group is abelian and count non-commutative pairs
+  const { isAbelian, nonCommutativePairs, groupSize } = useMemo(() => {
+    switch (groupType) {
+      case 'Zn': {
+        const group = createZn(n);
+        return { ...checkAbelian(group), groupSize: group.elements.length };
+      }
+      case 'Dn': {
+        const group = createDn(n);
+        return { ...checkAbelian(group), groupSize: group.elements.length };
+      }
+      case 'Sn': {
+        const group = createSn(n);
+        return { ...checkAbelian(group), groupSize: group.elements.length };
+      }
+      case 'V4': {
+        const group = createV4();
+        return { ...checkAbelian(group), groupSize: group.elements.length };
+      }
+    }
+  }, [groupType, n]);
+
+  const handleNChange = (newN: number) => {
+    setN(Math.max(minN, Math.min(maxN, newN)));
+  };
+
+  const handleGroupChange = (newType: AbelianDemoGroupType) => {
+    setGroupType(newType);
+    const newMinN = newType === 'Dn' ? 3 : newType === 'Sn' ? 2 : 2;
+    const newMaxN = newType === 'Sn' ? 3 : newType === 'Dn' ? 4 : 8;
+    if (n < newMinN) setN(newMinN);
+    if (n > newMaxN) setN(newMaxN);
+  };
+
+  const getGroupName = () => {
+    switch (groupType) {
+      case 'Zn': return `ℤ${n}`;
+      case 'Dn': return `D${n}`;
+      case 'Sn': return `S${n}`;
+      case 'V4': return 'V₄';
+    }
+  };
+
+  return (
+    <div className="demo-container">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+        <h4 className="text-lg font-semibold">Abelian vs Non-Abelian Groups</h4>
+        <div className={`px-3 py-1.5 rounded-lg font-medium text-sm ${
+          isAbelian
+            ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+            : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+        }`}>
+          {isAbelian ? '✓ Abelian' : `✗ Non-Abelian (${nonCommutativePairs} pairs)`}
+        </div>
+      </div>
+
+      {/* Controls */}
+      <div className="flex flex-wrap gap-4 mb-4">
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-dark-400">Group:</label>
+          <select
+            value={groupType}
+            onChange={(e) => handleGroupChange(e.target.value as AbelianDemoGroupType)}
+            className="input w-24"
+          >
+            <option value="Zn">Zₙ</option>
+            <option value="Dn">Dₙ</option>
+            <option value="Sn">Sₙ</option>
+            <option value="V4">V₄</option>
+          </select>
+        </div>
+
+        {needsN && (
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-dark-400">n:</label>
+            <input
+              type="number"
+              value={n}
+              onChange={(e) => handleNChange(parseInt(e.target.value) || minN)}
+              min={minN}
+              max={maxN}
+              className="input w-16"
+            />
+          </div>
+        )}
+
+        <label className="flex items-center gap-2 text-sm text-dark-400 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={highlightNonAbelian}
+            onChange={(e) => setHighlightNonAbelian(e.target.checked)}
+            className="rounded border-dark-600"
+          />
+          Highlight ab ≠ ba
+        </label>
+      </div>
+
+      {/* Legend for non-abelian highlighting */}
+      {highlightNonAbelian && !isAbelian && (
+        <div className="mb-4 p-3 bg-dark-800/50 rounded-lg flex items-center gap-4 text-sm">
+          <span className="flex items-center gap-2">
+            <span className="w-6 h-6 rounded ring-2 ring-orange-500 bg-orange-500/20"></span>
+            <span className="text-dark-300">Cells where ab ≠ ba</span>
+          </span>
+          <span className="text-dark-500">
+            These pairs prove the group is non-abelian
+          </span>
+        </div>
+      )}
+
+      {/* Table - use separate components to avoid type issues */}
+      {groupType === 'Zn' && <AbelianZnTable n={n} highlightNonAbelian={highlightNonAbelian} />}
+      {groupType === 'Dn' && <AbelianDnTable n={n} highlightNonAbelian={highlightNonAbelian} />}
+      {groupType === 'Sn' && <AbelianSnTable n={n} highlightNonAbelian={highlightNonAbelian} />}
+      {groupType === 'V4' && <AbelianV4Table highlightNonAbelian={highlightNonAbelian} />}
+
+      {/* Info */}
+      <div className="mt-4 text-sm text-dark-400">
+        <p>
+          <strong>{getGroupName()}</strong> has order {groupSize}.
+          {isAbelian
+            ? ' The table is symmetric across the diagonal — every pair commutes.'
+            : ` The orange cells show ${nonCommutativePairs} pairs where ab ≠ ba.`}
+        </p>
+      </div>
+    </div>
+  );
 }
