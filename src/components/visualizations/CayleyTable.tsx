@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
-import type { Group } from '../../lib/types/algebra';
+import type { Group, DihedralElement } from '../../lib/types/algebra';
 import { cayleyTable, elementOrder } from '../../lib/algebra/groups';
+import { motion } from 'framer-motion';
 
 interface CayleyTableProps<T> {
   group: Group<T>;
@@ -10,6 +11,8 @@ interface CayleyTableProps<T> {
   compact?: boolean; // Force compact mode
   useIndices?: boolean; // Use numeric indices instead of element names
   highlightNonAbelian?: boolean; // Highlight cells where ab ≠ ba
+  onCellHover?: (row: number, col: number, result: T) => void;
+  onCellSelect?: (row: number, col: number, result: T) => void;
 }
 
 // Color palette for different element orders
@@ -102,6 +105,8 @@ export function CayleyTable<T>({
   compact: forceCompact,
   useIndices: forceUseIndices,
   highlightNonAbelian = false,
+  onCellHover,
+  onCellSelect,
 }: CayleyTableProps<T>) {
   const [highlightedRow, setHighlightedRow] = useState<number | null>(null);
   const [highlightedCol, setHighlightedCol] = useState<number | null>(null);
@@ -165,12 +170,19 @@ export function CayleyTable<T>({
     return group.equals(element, group.identity);
   };
 
-  const handleCellClick = (rowIndex: number, colIndex: number) => {
+  const handleCellClick = (rowIndex: number, colIndex: number, result: T) => {
     if (selectedCell?.row === rowIndex && selectedCell?.col === colIndex) {
       setSelectedCell(null);
     } else {
       setSelectedCell({ row: rowIndex, col: colIndex });
+      onCellSelect?.(rowIndex, colIndex, result);
     }
+  };
+
+  const handleCellHover = (rowIndex: number, colIndex: number, result: T) => {
+    setHighlightedRow(rowIndex);
+    setHighlightedCol(colIndex);
+    onCellHover?.(rowIndex, colIndex, result);
   };
 
   // Display function - either index or element name
@@ -284,15 +296,12 @@ export function CayleyTable<T>({
                             ? getOrderBgColor(cell.result) + ' ' + getOrderColor(cell.result)
                             : getOrderColor(cell.result)
                       }`}
-                      onMouseEnter={() => {
-                        setHighlightedRow(i);
-                        setHighlightedCol(j);
-                      }}
+                      onMouseEnter={() => handleCellHover(i, j, cell.result)}
                       onMouseLeave={() => {
                         setHighlightedRow(null);
                         setHighlightedCol(null);
                       }}
-                      onClick={() => handleCellClick(i, j)}
+                      onClick={() => handleCellClick(i, j, cell.result)}
                       title={useIndices ? group.toString(cell.result) : undefined}
                     >
                       {cellDisplay(cell.result)}
@@ -573,6 +582,200 @@ function factorial(n: number): number {
   return n * factorial(n - 1);
 }
 
+// Compact polygon visualization for dihedral groups
+interface PolygonSymmetryPreviewProps {
+  n: number;
+  element?: DihedralElement;
+  size?: number;
+}
+
+// Vertex colors for tracking
+const vertexColors = ['#ef4444', '#22c55e', '#3b82f6', '#eab308', '#a855f7', '#ec4899', '#14b8a6', '#f97316'];
+
+// Compute the permutation of vertices for a dihedral element
+function computeDihedralPermutation(n: number, element: DihedralElement): number[] {
+  // Start with identity [1, 2, 3, ..., n]
+  const result = Array.from({ length: n }, (_, i) => i + 1);
+
+  // Apply rotation: vertex i goes to position (i + rotation) mod n
+  const rotated = result.map((_, i) => result[(i - element.rotation + n) % n]);
+
+  if (!element.isReflection) {
+    return rotated;
+  }
+
+  // Apply reflection: reverse the order (reflection across axis through vertex 1)
+  // After rotation r^k, reflection s gives us: swap positions symmetrically
+  const reflected = [...rotated];
+  for (let i = 1; i < n; i++) {
+    reflected[i] = rotated[n - i];
+  }
+  return reflected;
+}
+
+// Convert permutation to cycle notation
+function permToCycleNotation(perm: number[]): string {
+  const n = perm.length;
+  const visited = new Array(n).fill(false);
+  const cycles: number[][] = [];
+
+  for (let i = 0; i < n; i++) {
+    if (visited[i]) continue;
+
+    const cycle: number[] = [];
+    let j = i;
+
+    while (!visited[j]) {
+      visited[j] = true;
+      cycle.push(j + 1);
+      j = perm.indexOf(j + 1);
+    }
+
+    if (cycle.length > 1) {
+      cycles.push(cycle);
+    }
+  }
+
+  if (cycles.length === 0) return 'e';
+  return cycles.map(c => `(${c.join(' ')})`).join('');
+}
+
+function PolygonSymmetryPreview({ n, element, size = 180 }: PolygonSymmetryPreviewProps) {
+  const center = size / 2;
+  const radius = size * 0.35;
+  const vertexRadius = size * 0.08;
+
+  // Compute vertex positions for identity
+  const getVertexPositions = (): [number, number][] => {
+    const positions: [number, number][] = [];
+    for (let i = 0; i < n; i++) {
+      // Start from top (-90 degrees) and go clockwise
+      const angle = (-90 + (360 / n) * i) * (Math.PI / 180);
+      positions.push([
+        center + radius * Math.cos(angle),
+        center + radius * Math.sin(angle)
+      ]);
+    }
+    return positions;
+  };
+
+  const identityPositions = getVertexPositions();
+
+  // Compute current permutation and vertex labels
+  const perm = element ? computeDihedralPermutation(n, element) : Array.from({ length: n }, (_, i) => i + 1);
+  const cycleNotation = permToCycleNotation(perm);
+
+  // Polygon points
+  const polygonPoints = identityPositions.map(p => p.join(',')).join(' ');
+
+  return (
+    <div className="flex flex-col items-center">
+      <svg width={size} height={size} className="bg-dark-950 rounded-lg">
+        {/* Background circle */}
+        <circle
+          cx={center}
+          cy={center}
+          r={radius + 15}
+          fill="none"
+          stroke="rgba(99, 102, 241, 0.1)"
+          strokeWidth="1"
+          strokeDasharray="3 3"
+        />
+
+        {/* Center point */}
+        <circle cx={center} cy={center} r={3} fill="#6366f1" />
+
+        {/* Polygon outline */}
+        <polygon
+          points={polygonPoints}
+          fill="rgba(99, 102, 241, 0.1)"
+          stroke="#6366f1"
+          strokeWidth="2"
+        />
+
+        {/* Vertices with labels showing where each number went */}
+        {identityPositions.map(([x, y], i) => {
+          const label = perm[i]; // What vertex number is now at position i
+          const color = vertexColors[(label - 1) % vertexColors.length];
+
+          return (
+            <g key={i}>
+              <motion.circle
+                cx={x}
+                cy={y}
+                r={vertexRadius}
+                fill="#0f172a"
+                stroke={color}
+                strokeWidth="2"
+                initial={false}
+                animate={{ cx: x, cy: y }}
+                transition={{ duration: 0.3 }}
+              />
+              <motion.circle
+                cx={x}
+                cy={y}
+                r={vertexRadius - 3}
+                fill={color}
+                initial={false}
+                animate={{ cx: x, cy: y }}
+                transition={{ duration: 0.3 }}
+              />
+              <motion.text
+                x={x}
+                y={y}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fill="#ffffff"
+                fontSize={size * 0.07}
+                fontWeight="bold"
+                fontFamily="system-ui"
+                initial={false}
+                animate={{ x, y }}
+                transition={{ duration: 0.3 }}
+              >
+                {label}
+              </motion.text>
+            </g>
+          );
+        })}
+
+        {/* Rotation indicator */}
+        {element && element.rotation > 0 && !element.isReflection && (
+          <text
+            x={center}
+            y={size - 10}
+            textAnchor="middle"
+            fill="#f97316"
+            fontSize="10"
+          >
+            ↻ {(360 / n) * element.rotation}°
+          </text>
+        )}
+
+        {/* Reflection indicator */}
+        {element && element.isReflection && (
+          <text
+            x={center}
+            y={size - 10}
+            textAnchor="middle"
+            fill="#22d3ee"
+            fontSize="10"
+          >
+            ↔ reflected
+          </text>
+        )}
+      </svg>
+
+      {/* Permutation display */}
+      <div className="mt-2 text-center">
+        <span className="font-mono text-sm text-emerald-400 font-semibold">
+          {cycleNotation}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 // Specialized demo for Section 3: Abelian groups
 // Restricts to groups of order ≤ 8 and highlights non-commutative cells
 type AbelianDemoGroupType = 'Zn' | 'Dn' | 'Sn' | 'V4';
@@ -602,9 +805,24 @@ function AbelianZnTable({ n, highlightNonAbelian }: { n: number; highlightNonAbe
   return <CayleyTable group={group} highlightNonAbelian={highlightNonAbelian} colorByOrder={true} />;
 }
 
-function AbelianDnTable({ n, highlightNonAbelian }: { n: number; highlightNonAbelian: boolean }) {
+function AbelianDnTable({
+  n,
+  highlightNonAbelian,
+  onCellHover
+}: {
+  n: number;
+  highlightNonAbelian: boolean;
+  onCellHover?: (row: number, col: number, result: DihedralElement) => void;
+}) {
   const group = useMemo(() => createDn(n), [n]);
-  return <CayleyTable group={group} highlightNonAbelian={highlightNonAbelian} colorByOrder={true} />;
+  return (
+    <CayleyTable
+      group={group}
+      highlightNonAbelian={highlightNonAbelian}
+      colorByOrder={true}
+      onCellHover={onCellHover}
+    />
+  );
 }
 
 function AbelianSnTable({ n, highlightNonAbelian }: { n: number; highlightNonAbelian: boolean }) {
@@ -624,6 +842,7 @@ export function AbelianCayleyTableDemo({
   const [groupType, setGroupType] = useState<AbelianDemoGroupType>(defaultGroup);
   const [n, setN] = useState(defaultN);
   const [highlightNonAbelian, setHighlightNonAbelian] = useState(true);
+  const [hoveredElement, setHoveredElement] = useState<DihedralElement | null>(null);
 
   // Restricted limits for 8x8 max
   const getMaxN = () => {
@@ -756,11 +975,41 @@ export function AbelianCayleyTableDemo({
         </div>
       )}
 
-      {/* Table - use separate components to avoid type issues */}
-      {groupType === 'Zn' && <AbelianZnTable n={n} highlightNonAbelian={highlightNonAbelian} />}
-      {groupType === 'Dn' && <AbelianDnTable n={n} highlightNonAbelian={highlightNonAbelian} />}
-      {groupType === 'Sn' && <AbelianSnTable n={n} highlightNonAbelian={highlightNonAbelian} />}
-      {groupType === 'V4' && <AbelianV4Table highlightNonAbelian={highlightNonAbelian} />}
+      {/* Main content: Table + optional geometric preview */}
+      <div className={`flex flex-col ${groupType === 'Dn' ? 'lg:flex-row' : ''} gap-6`}>
+        {/* Table - use separate components to avoid type issues */}
+        <div className="flex-1 overflow-x-auto">
+          {groupType === 'Zn' && <AbelianZnTable n={n} highlightNonAbelian={highlightNonAbelian} />}
+          {groupType === 'Dn' && (
+            <AbelianDnTable
+              n={n}
+              highlightNonAbelian={highlightNonAbelian}
+              onCellHover={(_, __, result) => setHoveredElement(result)}
+            />
+          )}
+          {groupType === 'Sn' && <AbelianSnTable n={n} highlightNonAbelian={highlightNonAbelian} />}
+          {groupType === 'V4' && <AbelianV4Table highlightNonAbelian={highlightNonAbelian} />}
+        </div>
+
+        {/* Geometric preview for Dn */}
+        {groupType === 'Dn' && (
+          <div className="lg:w-64 flex-shrink-0">
+            <div className="p-4 bg-dark-800/50 rounded-lg">
+              <h5 className="text-sm font-semibold text-dark-300 mb-3 text-center">
+                Symmetry on {n}-gon
+              </h5>
+              <PolygonSymmetryPreview
+                n={n}
+                element={hoveredElement ?? { rotation: 0, isReflection: false }}
+                size={200}
+              />
+              <p className="text-xs text-dark-500 mt-3 text-center">
+                Hover over table cells to see the transformation
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Info */}
       <div className="mt-4 text-sm text-dark-400">
