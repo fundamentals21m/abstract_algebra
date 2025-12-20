@@ -1,5 +1,8 @@
 import { useState } from 'react';
 
+// Difficulty levels
+type Difficulty = 'easy' | 'medium' | 'hard';
+
 // Types for quiz questions
 type QuestionType =
   | 'cycle_to_mapping'      // Given cycle notation, find where an element maps to
@@ -120,17 +123,38 @@ function randomCycle(elements: number[], length: number): number[] {
 }
 
 // Question generators
-function generateCycleToMappingQuestion(): FreeResponseQuestion {
-  const n = 4 + Math.floor(Math.random() * 2); // 4 or 5
-  const cycleLength = 2 + Math.floor(Math.random() * (n - 1)); // 2 to n
+function generateCycleToMappingQuestion(difficulty: Difficulty): FreeResponseQuestion {
+  // Easy: S3, single short cycle. Medium: S4-S5. Hard: S5-S6, may have multiple cycles
+  const n = difficulty === 'easy' ? 3 : difficulty === 'medium' ? (4 + Math.floor(Math.random() * 2)) : (5 + Math.floor(Math.random() * 2));
   const elements = Array.from({ length: n }, (_, i) => i + 1);
-  const cycle = randomCycle(elements, cycleLength);
 
-  const queryElement = cycle[Math.floor(Math.random() * cycle.length)];
-  const nextIndex = (cycle.indexOf(queryElement) + 1) % cycle.length;
-  const correctAnswer = cycle[nextIndex];
+  let cycles: number[][];
+  if (difficulty === 'easy') {
+    // Single 2 or 3 cycle
+    const cycleLength = 2 + Math.floor(Math.random() * 2);
+    cycles = [randomCycle(elements, cycleLength)];
+  } else if (difficulty === 'medium') {
+    // Single cycle of length 2-4
+    const cycleLength = 2 + Math.floor(Math.random() * 3);
+    cycles = [randomCycle(elements, cycleLength)];
+  } else {
+    // May have multiple disjoint cycles
+    if (Math.random() > 0.5) {
+      const cycle1 = randomCycle(elements.slice(0, 3), 2 + Math.floor(Math.random() * 2));
+      const remaining = elements.filter(e => !cycle1.includes(e));
+      const cycle2 = randomCycle(remaining, Math.min(2, remaining.length));
+      cycles = cycle2.length >= 2 ? [cycle1, cycle2] : [cycle1];
+    } else {
+      cycles = [randomCycle(elements, 3 + Math.floor(Math.random() * 3))];
+    }
+  }
 
-  const cycleStr = `(${cycle.join(' ')})`;
+  const perm = multipleCyclesToPermutation(cycles, n);
+  const cycleStr = cyclesToString(cycles);
+
+  // Pick a random element to query
+  const queryElement = 1 + Math.floor(Math.random() * n);
+  const correctAnswer = perm[queryElement - 1];
 
   return {
     type: 'cycle_to_mapping',
@@ -138,21 +162,22 @@ function generateCycleToMappingQuestion(): FreeResponseQuestion {
     question: `In S${n}, if σ = ${cycleStr}, what is σ(${queryElement})?`,
     correctAnswer: correctAnswer.toString(),
     acceptedAnswers: [correctAnswer.toString()],
-    explanation: `In the cycle ${cycleStr}, each element maps to the next one. So ${queryElement} → ${correctAnswer}.`
+    explanation: `Apply the permutation: ${queryElement} → ${correctAnswer}.${cycles.length > 1 ? ' Remember to check each cycle.' : ''}`
   };
 }
 
-function generateMappingToCycleQuestion(): MultipleChoiceQuestion {
-  const n = 4;
-  // Generate a random permutation with 1-2 non-trivial cycles
-  const numCycles = 1 + Math.floor(Math.random() * 2);
+function generateMappingToCycleQuestion(difficulty: Difficulty): MultipleChoiceQuestion {
+  // Easy: S3, Medium: S4, Hard: S5
+  const n = difficulty === 'easy' ? 3 : difficulty === 'medium' ? 4 : 5;
+  const numCycles = difficulty === 'easy' ? 1 : (1 + Math.floor(Math.random() * 2));
   const elements = Array.from({ length: n }, (_, i) => i + 1);
 
   let cycles: number[][] = [];
   let remaining = [...elements];
 
   for (let i = 0; i < numCycles && remaining.length >= 2; i++) {
-    const cycleLen = Math.min(2 + Math.floor(Math.random() * 2), remaining.length);
+    const maxLen = difficulty === 'easy' ? 2 : 3;
+    const cycleLen = Math.min(2 + Math.floor(Math.random() * maxLen), remaining.length);
     const cycle = remaining.slice(0, cycleLen);
     cycles.push(cycle);
     remaining = remaining.slice(cycleLen);
@@ -179,9 +204,11 @@ function generateMappingToCycleQuestion(): MultipleChoiceQuestion {
   // Add some random wrong cycles
   const randomWrong = shuffle(elements);
   wrongAnswers.push(`(${randomWrong[0]} ${randomWrong[1]})`);
-  wrongAnswers.push(`(${randomWrong[0]} ${randomWrong[1]} ${randomWrong[2]})`);
-  wrongAnswers.push(`(${randomWrong[1]} ${randomWrong[2]})`);
-  wrongAnswers.push(`(${randomWrong[0]} ${randomWrong[2]})`);
+  if (randomWrong.length >= 3) {
+    wrongAnswers.push(`(${randomWrong[0]} ${randomWrong[1]} ${randomWrong[2]})`);
+    wrongAnswers.push(`(${randomWrong[1]} ${randomWrong[2]})`);
+    wrongAnswers.push(`(${randomWrong[0]} ${randomWrong[2]})`);
+  }
   if (correctAnswer !== 'e') {
     wrongAnswers.push('e');
   }
@@ -190,7 +217,8 @@ function generateMappingToCycleQuestion(): MultipleChoiceQuestion {
 
   const options = shuffle([correctAnswer, ...uniqueWrong]);
 
-  const twoLine = `[1 2 3 4] → [${perm.join(' ')}]`;
+  const header = Array.from({ length: n }, (_, i) => i + 1).join(' ');
+  const twoLine = `[${header}] → [${perm.join(' ')}]`;
 
   return {
     type: 'mapping_to_cycle',
@@ -202,12 +230,28 @@ function generateMappingToCycleQuestion(): MultipleChoiceQuestion {
   };
 }
 
-function generateComposeCyclesQuestion(): MultipleChoiceQuestion {
-  const n = 4;
-  // Generate two simple cycles
-  const cycle1 = randomCycle([1, 2, 3], 2);
-  const cycle2Elems = Math.random() > 0.5 ? [1, 2, 3] : [2, 3, 4];
-  const cycle2 = randomCycle(cycle2Elems, 2);
+function generateComposeCyclesQuestion(difficulty: Difficulty): MultipleChoiceQuestion {
+  // Easy: S3 with 2-cycles, Medium: S4, Hard: S5 with longer cycles
+  const n = difficulty === 'easy' ? 3 : difficulty === 'medium' ? 4 : 5;
+  const elements = Array.from({ length: n }, (_, i) => i + 1);
+
+  let cycle1: number[], cycle2: number[];
+
+  if (difficulty === 'easy') {
+    // Two transpositions in S3
+    cycle1 = randomCycle(elements, 2);
+    const remaining = elements.filter(e => !cycle1.includes(e) || Math.random() > 0.5);
+    cycle2 = randomCycle(remaining.length >= 2 ? remaining : elements, 2);
+  } else if (difficulty === 'medium') {
+    // Mix of 2 and 3 cycles
+    cycle1 = randomCycle([1, 2, 3], 2);
+    const cycle2Elems = Math.random() > 0.5 ? [1, 2, 3] : [2, 3, 4];
+    cycle2 = randomCycle(cycle2Elems, 2 + Math.floor(Math.random() * 2));
+  } else {
+    // Longer cycles, may overlap
+    cycle1 = randomCycle(elements.slice(0, 4), 2 + Math.floor(Math.random() * 2));
+    cycle2 = randomCycle(elements.slice(1), 2 + Math.floor(Math.random() * 2));
+  }
 
   const perm1 = cycleToPermutation(cycle1, n);
   const perm2 = cycleToPermutation(cycle2, n);
@@ -225,9 +269,10 @@ function generateComposeCyclesQuestion(): MultipleChoiceQuestion {
   const wrongAnswers = [wrong1];
   // Add some plausible wrong answers
   wrongAnswers.push(`(${cycle1[0]} ${cycle2[0]})`);
-  wrongAnswers.push(`(${cycle1[0]} ${cycle1[1]} ${cycle2[1]})`);
-  wrongAnswers.push(`(${cycle1[1]} ${cycle2[0]})`);
-  wrongAnswers.push(`(${cycle1[0]} ${cycle2[1]})`);
+  if (cycle1.length > 1 && cycle2.length > 1) {
+    wrongAnswers.push(`(${cycle1[0]} ${cycle1[1]} ${cycle2[cycle2.length - 1]})`);
+    wrongAnswers.push(`(${cycle1[1]} ${cycle2[0]})`);
+  }
   if (correctAnswer !== 'e') {
     wrongAnswers.push('e');
   }
@@ -246,22 +291,44 @@ function generateComposeCyclesQuestion(): MultipleChoiceQuestion {
   };
 }
 
-function generateFindOrderQuestion(): FreeResponseQuestion {
-  const n = 5;
-  // Generate a permutation with interesting order
-  const cycleConfigs = [
-    [[1, 2], [3, 4, 5]],      // order 6
-    [[1, 2, 3], [4, 5]],      // order 6
-    [[1, 2, 3, 4]],           // order 4
-    [[1, 2, 3]],              // order 3
-    [[1, 2], [3, 4]],         // order 2
-    [[1, 2, 3, 4, 5]],        // order 5
-  ];
+function generateFindOrderQuestion(difficulty: Difficulty): FreeResponseQuestion {
+  // Easy: single cycles, Medium: two disjoint cycles, Hard: complex combinations
+  let cycles: number[][];
+  let n: number;
 
-  const cycles = cycleConfigs[Math.floor(Math.random() * cycleConfigs.length)];
+  if (difficulty === 'easy') {
+    n = 4;
+    const easyConfigs = [
+      [[1, 2]],           // order 2
+      [[1, 2, 3]],        // order 3
+      [[1, 2, 3, 4]],     // order 4
+    ];
+    cycles = easyConfigs[Math.floor(Math.random() * easyConfigs.length)];
+  } else if (difficulty === 'medium') {
+    n = 5;
+    const mediumConfigs = [
+      [[1, 2], [3, 4]],       // order 2
+      [[1, 2, 3]],            // order 3
+      [[1, 2, 3, 4]],         // order 4
+      [[1, 2, 3, 4, 5]],      // order 5
+    ];
+    cycles = mediumConfigs[Math.floor(Math.random() * mediumConfigs.length)];
+  } else {
+    n = 6;
+    const hardConfigs = [
+      [[1, 2], [3, 4, 5]],        // order 6
+      [[1, 2, 3], [4, 5]],        // order 6
+      [[1, 2, 3, 4], [5, 6]],     // order 4
+      [[1, 2, 3], [4, 5, 6]],     // order 3
+      [[1, 2], [3, 4], [5, 6]],   // order 2
+      [[1, 2, 3, 4, 5, 6]],       // order 6
+      [[1, 2, 3, 4], [5, 6, 7].slice(0, 2)], // order 4
+    ];
+    cycles = hardConfigs[Math.floor(Math.random() * hardConfigs.length)];
+  }
+
   const order = orderOfPermutation(cycles);
   const cycleStr = cyclesToString(cycles);
-
   const lengths = cycles.map(c => c.length);
 
   return {
@@ -274,21 +341,47 @@ function generateFindOrderQuestion(): FreeResponseQuestion {
   };
 }
 
-function generateFindParityQuestion(): MultipleChoiceQuestion {
-  const cycleConfigs: [number[][], 'even' | 'odd'][] = [
-    [[[1, 2]], 'odd'],
-    [[[1, 2, 3]], 'even'],
-    [[[1, 2, 3, 4]], 'odd'],
-    [[[1, 2], [3, 4]], 'even'],
-    [[[1, 2], [3, 4, 5]], 'odd'],
-    [[[1, 2, 3, 4, 5]], 'even'],
-    [[[1, 2, 3], [4, 5]], 'odd'],
-  ];
+function generateFindParityQuestion(difficulty: Difficulty): MultipleChoiceQuestion {
+  let cycleConfigs: [number[][], 'even' | 'odd'][];
+
+  if (difficulty === 'easy') {
+    // Single cycles only
+    cycleConfigs = [
+      [[[1, 2]], 'odd'],
+      [[[1, 2, 3]], 'even'],
+      [[[1, 2, 3, 4]], 'odd'],
+    ];
+  } else if (difficulty === 'medium') {
+    // Mix of single and double cycles
+    cycleConfigs = [
+      [[[1, 2]], 'odd'],
+      [[[1, 2, 3]], 'even'],
+      [[[1, 2, 3, 4]], 'odd'],
+      [[[1, 2], [3, 4]], 'even'],
+      [[[1, 2, 3, 4, 5]], 'even'],
+    ];
+  } else {
+    // Complex combinations
+    cycleConfigs = [
+      [[[1, 2], [3, 4]], 'even'],
+      [[[1, 2], [3, 4, 5]], 'odd'],
+      [[[1, 2, 3, 4, 5]], 'even'],
+      [[[1, 2, 3], [4, 5]], 'odd'],
+      [[[1, 2], [3, 4], [5, 6]], 'odd'],
+      [[[1, 2, 3], [4, 5, 6]], 'even'],
+      [[[1, 2, 3, 4, 5, 6]], 'odd'],
+    ];
+  }
 
   const [cycles, parity] = cycleConfigs[Math.floor(Math.random() * cycleConfigs.length)];
   const cycleStr = cyclesToString(cycles);
 
   const options = ['even', 'odd'];
+
+  let explanation = `A ${cycles[0].length}-cycle is ${cycles[0].length % 2 === 0 ? 'odd' : 'even'} (needs ${cycles[0].length - 1} transposition${cycles[0].length - 1 !== 1 ? 's' : ''}).`;
+  if (cycles.length > 1) {
+    explanation += ` Combined with ${cycles.slice(1).map(c => `a ${c.length}-cycle (${c.length - 1} transposition${c.length - 1 !== 1 ? 's' : ''})`).join(' and ')}, the total parity is ${parity}.`;
+  }
 
   return {
     type: 'find_parity',
@@ -296,17 +389,37 @@ function generateFindParityQuestion(): MultipleChoiceQuestion {
     question: `Is σ = ${cycleStr} an even or odd permutation?`,
     options,
     correctIndex: options.indexOf(parity),
-    explanation: `A ${cycles[0].length}-cycle is ${cycles[0].length % 2 === 0 ? 'odd' : 'even'}. ${cycles.length > 1 ? `Combined with ${cycles.slice(1).map(c => `a ${c.length}-cycle`).join(' and ')}, the total parity is ${parity}.` : ''}`
+    explanation
   };
 }
 
-function generateTranspositionsQuestion(): MultipleChoiceQuestion {
-  const cycles: number[][] = [
-    [1, 2, 3],
-    [1, 2, 3, 4],
-    [2, 3, 4],
-    [1, 3, 4],
-  ];
+function generateTranspositionsQuestion(difficulty: Difficulty): MultipleChoiceQuestion {
+  let cycles: number[][];
+
+  if (difficulty === 'easy') {
+    // Only 3-cycles
+    cycles = [
+      [1, 2, 3],
+      [2, 3, 4],
+      [1, 3, 4],
+    ];
+  } else if (difficulty === 'medium') {
+    // 3 and 4 cycles
+    cycles = [
+      [1, 2, 3],
+      [1, 2, 3, 4],
+      [2, 3, 4],
+      [1, 3, 4],
+    ];
+  } else {
+    // Up to 5-cycles
+    cycles = [
+      [1, 2, 3, 4],
+      [1, 2, 3, 4, 5],
+      [2, 3, 4, 5],
+      [1, 3, 4, 5],
+    ];
+  }
 
   const cycle = cycles[Math.floor(Math.random() * cycles.length)];
   const cycleStr = `(${cycle.join(' ')})`;
@@ -322,7 +435,13 @@ function generateTranspositionsQuestion(): MultipleChoiceQuestion {
     wrongAnswers.push(`(${cycle[0]} ${cycle[1]})`);
   }
   // Wrong elements
-  wrongAnswers.push(`(${cycle[0]} ${cycle[1]})(${cycle[0]} ${cycle[2] || cycle[1]})`);
+  if (cycle.length >= 3) {
+    wrongAnswers.push(`(${cycle[0]} ${cycle[1]})(${cycle[0]} ${cycle[2]})`);
+  }
+  // Wrong starting element
+  if (cycle.length >= 3) {
+    wrongAnswers.push(`(${cycle[1]} ${cycle[2]})(${cycle[1]} ${cycle[0]})`);
+  }
 
   const uniqueWrong = [...new Set(wrongAnswers)].filter(w => w !== correct).slice(0, 3);
   const options = shuffle([correct, ...uniqueWrong]);
@@ -337,33 +456,73 @@ function generateTranspositionsQuestion(): MultipleChoiceQuestion {
   };
 }
 
-// Generate a random question
-function generateQuestion(): Question {
-  const generators = [
-    generateCycleToMappingQuestion,
-    generateMappingToCycleQuestion,
-    generateComposeCyclesQuestion,
-    generateFindOrderQuestion,
-    generateFindParityQuestion,
-    generateTranspositionsQuestion,
-  ];
+// Generate a random question based on difficulty
+function generateQuestion(difficulty: Difficulty): Question {
+  // Different question type distributions based on difficulty
+  let generators: Array<(d: Difficulty) => Question>;
+
+  if (difficulty === 'easy') {
+    // Easy: focus on basic questions, more mapping and parity
+    generators = [
+      generateCycleToMappingQuestion,
+      generateCycleToMappingQuestion,
+      generateMappingToCycleQuestion,
+      generateFindParityQuestion,
+      generateFindOrderQuestion,
+    ];
+  } else if (difficulty === 'medium') {
+    // Medium: balanced mix
+    generators = [
+      generateCycleToMappingQuestion,
+      generateMappingToCycleQuestion,
+      generateComposeCyclesQuestion,
+      generateFindOrderQuestion,
+      generateFindParityQuestion,
+      generateTranspositionsQuestion,
+    ];
+  } else {
+    // Hard: more complex questions
+    generators = [
+      generateCycleToMappingQuestion,
+      generateMappingToCycleQuestion,
+      generateComposeCyclesQuestion,
+      generateComposeCyclesQuestion,
+      generateFindOrderQuestion,
+      generateFindParityQuestion,
+      generateTranspositionsQuestion,
+      generateTranspositionsQuestion,
+    ];
+  }
 
   const generator = generators[Math.floor(Math.random() * generators.length)];
-  return generator();
+  return generator(difficulty);
 }
 
 // Quiz component
 export function CyclePermutationQuiz() {
-  const [questions, setQuestions] = useState<Question[]>(() =>
-    Array.from({ length: 10 }, generateQuestion)
-  );
+  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
+  const [quizStarted, setQuizStarted] = useState(false);
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [textAnswer, setTextAnswer] = useState('');
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [score, setScore] = useState(0);
-  const [answered, setAnswered] = useState<boolean[]>(() => new Array(10).fill(false));
+  const [answered, setAnswered] = useState<boolean[]>([]);
+
+  const startQuiz = (diff: Difficulty) => {
+    setDifficulty(diff);
+    setQuestions(Array.from({ length: 10 }, () => generateQuestion(diff)));
+    setAnswered(new Array(10).fill(false));
+    setQuizStarted(true);
+    setCurrentIndex(0);
+    setSelectedAnswer(null);
+    setTextAnswer('');
+    setShowResult(false);
+    setIsCorrect(false);
+    setScore(0);
+  };
 
   const currentQuestion = questions[currentIndex];
 
@@ -430,28 +589,79 @@ export function CyclePermutationQuiz() {
   };
 
   const resetQuiz = () => {
-    setQuestions(Array.from({ length: 10 }, generateQuestion));
-    setCurrentIndex(0);
-    setSelectedAnswer(null);
-    setTextAnswer('');
-    setShowResult(false);
-    setIsCorrect(false);
-    setScore(0);
-    setAnswered(new Array(10).fill(false));
+    setQuizStarted(false);
   };
 
-  const isComplete = answered.every(a => a);
+  const isComplete = answered.length > 0 && answered.every(a => a);
+
+  // Difficulty selection screen
+  if (!quizStarted) {
+    return (
+      <div className="demo-container">
+        <h4 className="text-xl font-semibold mb-6 text-center">Cycle Permutation Quiz</h4>
+        <p className="text-dark-300 text-center mb-8">
+          Choose your difficulty level to begin:
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto">
+          <button
+            onClick={() => startQuiz('easy')}
+            className="p-6 rounded-xl border-2 border-green-500/30 bg-green-500/10 hover:bg-green-500/20 transition-all group"
+          >
+            <div className="text-2xl mb-2">🌱</div>
+            <div className="text-lg font-semibold text-green-400 mb-2">Easy</div>
+            <div className="text-sm text-dark-400">
+              S₃–S₄, single cycles, basic questions
+            </div>
+          </button>
+          <button
+            onClick={() => startQuiz('medium')}
+            className="p-6 rounded-xl border-2 border-yellow-500/30 bg-yellow-500/10 hover:bg-yellow-500/20 transition-all group"
+          >
+            <div className="text-2xl mb-2">⚡</div>
+            <div className="text-lg font-semibold text-yellow-400 mb-2">Medium</div>
+            <div className="text-sm text-dark-400">
+              S₄–S₅, mixed cycles, all question types
+            </div>
+          </button>
+          <button
+            onClick={() => startQuiz('hard')}
+            className="p-6 rounded-xl border-2 border-red-500/30 bg-red-500/10 hover:bg-red-500/20 transition-all group"
+          >
+            <div className="text-2xl mb-2">🔥</div>
+            <div className="text-lg font-semibold text-red-400 mb-2">Hard</div>
+            <div className="text-sm text-dark-400">
+              S₅–S₆, multiple cycles, complex compositions
+            </div>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Safety check for when quiz hasn't loaded questions yet
+  if (!currentQuestion) {
+    return <div className="demo-container">Loading...</div>;
+  }
 
   return (
     <div className="demo-container">
       <div className="flex items-center justify-between mb-6">
-        <h4 className="text-lg font-semibold">Cycle Permutation Quiz</h4>
+        <div className="flex items-center gap-3">
+          <h4 className="text-lg font-semibold">Cycle Permutation Quiz</h4>
+          <span className={`text-xs px-2 py-1 rounded-full ${
+            difficulty === 'easy' ? 'bg-green-500/20 text-green-400' :
+            difficulty === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+            'bg-red-500/20 text-red-400'
+          }`}>
+            {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+          </span>
+        </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-dark-400">
             Score: <span className="text-primary-400 font-semibold">{score}</span>/{answered.filter(a => a).length}
           </span>
           <button onClick={resetQuiz} className="btn-ghost text-sm">
-            New Quiz
+            Change Difficulty
           </button>
         </div>
       </div>
