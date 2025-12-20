@@ -288,15 +288,13 @@ function Shape({ rotation, isReflected, showAxes, shape }: ShapeProps) {
         transition={{ duration: 0.4, ease: 'easeInOut' }}
       />
 
-      {/* Vertices with labels */}
+      {/* Vertices with number labels */}
       {vertices.map(([x, y], i) => (
-        <motion.g key={i} initial={false} animate={{ x: 0, y: 0 }}>
-          {/* Outer ring for emphasis */}
+        <g key={i}>
+          {/* Outer dark background circle */}
           <motion.circle
-            cx={x}
-            cy={y}
-            r={18}
-            fill="rgba(15, 23, 42, 0.8)"
+            r={20}
+            fill="#0f172a"
             stroke={colors[i % colors.length]}
             strokeWidth="3"
             initial={false}
@@ -305,31 +303,27 @@ function Shape({ rotation, isReflected, showAxes, shape }: ShapeProps) {
           />
           {/* Inner colored circle */}
           <motion.circle
-            cx={x}
-            cy={y}
-            r={14}
+            r={16}
             fill={colors[i % colors.length]}
             initial={false}
             animate={{ cx: x, cy: y }}
             transition={{ duration: 0.4, ease: 'easeInOut' }}
           />
-          {/* Vertex number label inside circle */}
+          {/* Vertex number label */}
           <motion.text
-            x={x}
-            y={y}
-            dy="0.35em"
             textAnchor="middle"
+            dominantBaseline="central"
             fill="#ffffff"
-            fontSize="14"
-            fontWeight="700"
-            style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+            fontSize="16"
+            fontWeight="bold"
+            fontFamily="system-ui, sans-serif"
             initial={false}
             animate={{ x, y }}
             transition={{ duration: 0.4, ease: 'easeInOut' }}
           >
             {i + 1}
           </motion.text>
-        </motion.g>
+        </g>
       ))}
 
       {/* Reflection indicator */}
