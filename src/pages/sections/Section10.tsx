@@ -16,6 +16,66 @@ export default function Section10() {
           </p>
         </section>
 
+        {/* Why Cosets Matter */}
+        <section className="card border-l-4 border-primary-500">
+          <h3 className="text-xl font-semibold mb-4">Why Cosets Matter: Division Without Dividing</h3>
+          <div className="space-y-4 text-dark-300">
+            <p>
+              Groups have an operation, but they don't have "division" in the usual sense. Yet we often want
+              to understand a group by breaking it into smaller, manageable pieces. <strong>Cosets</strong> give us
+              exactly this—a way to partition any group using a subgroup as a template.
+            </p>
+
+            <div className="bg-dark-900 p-4 rounded-lg my-4">
+              <p className="font-semibold text-dark-100 mb-2">A Familiar Example: Modular Arithmetic</p>
+              <p>
+                You already know cosets! When we write <Math>{'a \\equiv b \\pmod{n}'}</Math>, we're saying
+                that <Math>a</Math> and <Math>b</Math> are in the same coset of <Math>{'n\\mathbb{Z}'}</Math> in{' '}
+                <Math>{'\\mathbb{Z}'}</Math>. The integers split into <Math>n</Math> cosets:{' '}
+                <Math>{'\\{...,-n,0,n,2n,...\\}'}</Math>, <Math>{'\\{...,-n+1,1,n+1,...\\}'}</Math>, etc.
+              </p>
+            </div>
+
+            <p className="font-semibold text-dark-100">Cosets unlock powerful tools:</p>
+
+            <div className="grid md:grid-cols-2 gap-4 mt-2">
+              <div className="bg-dark-800 p-4 rounded-lg">
+                <p className="font-semibold text-primary-400 mb-2">Lagrange's Theorem</p>
+                <p className="text-sm">
+                  Since cosets partition a group into equal pieces, the subgroup order must divide the group order.
+                  This instantly tells us: a group of order 15 cannot have a subgroup of order 4.
+                </p>
+              </div>
+              <div className="bg-dark-800 p-4 rounded-lg">
+                <p className="font-semibold text-primary-400 mb-2">Element Orders</p>
+                <p className="text-sm">
+                  Every element's order divides <Math>|G|</Math>. So in a group of order 12, element orders
+                  can only be 1, 2, 3, 4, 6, or 12—never 5, 7, 8, etc.
+                </p>
+              </div>
+              <div className="bg-dark-800 p-4 rounded-lg">
+                <p className="font-semibold text-primary-400 mb-2">Quotient Groups</p>
+                <p className="text-sm">
+                  When left and right cosets coincide (normal subgroups), we can treat cosets themselves
+                  as elements of a new, smaller group—the quotient group <Math>G/H</Math>.
+                </p>
+              </div>
+              <div className="bg-dark-800 p-4 rounded-lg">
+                <p className="font-semibold text-primary-400 mb-2">Counting Arguments</p>
+                <p className="text-sm">
+                  Cosets give precise counting: the number of elements of order <Math>d</Math>,
+                  the size of conjugacy classes, the structure of group actions.
+                </p>
+              </div>
+            </div>
+
+            <p className="mt-4 text-dark-400 italic">
+              The simple idea of "translating" a subgroup through a group leads to some of the deepest
+              results in algebra. Lagrange's theorem alone constrains every finite group's structure.
+            </p>
+          </div>
+        </section>
+
         {/* Definition of Cosets */}
         <Definition title="Left and Right Cosets">
           <p>
