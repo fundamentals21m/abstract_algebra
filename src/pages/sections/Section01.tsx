@@ -3,6 +3,7 @@ import { LessonLayout } from '../../components/layout/LessonLayout';
 import { Callout } from '../../components/common/Callout';
 import { Math as MathInline, MathBlock } from '../../components/common/MathBlock';
 import { Card, CardGrid } from '../../components/common/Card';
+import { GroupBasicsQuiz } from '../../components/visualizations';
 
 // Interactive Operation Table Builder
 function OperationTableBuilder() {
@@ -582,6 +583,16 @@ export default function Section01() {
           where every element has an inverse.
         </p>
       </Callout>
+
+      {/* Practice Quiz */}
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold mb-4">Practice: Binary Operations & Group Axioms</h2>
+        <p className="text-dark-300 mb-6">
+          Test your understanding of binary operations, their properties, and group axioms.
+          Each quiz generates 10 random questions.
+        </p>
+        <GroupBasicsQuiz />
+      </section>
 
       {/* Key Takeaways */}
       <h2 className="text-2xl font-semibold mt-10 mb-4">Key Takeaways</h2>

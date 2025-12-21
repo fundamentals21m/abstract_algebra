@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
+import { IdealsQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section37() {
@@ -178,6 +179,12 @@ export default function Section37() {
               This correspondence is the foundation of algebraic geometry.
             </li>
           </ul>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Test Your Understanding</h3>
+          <IdealsQuiz />
         </section>
       </div>
     </LessonLayout>

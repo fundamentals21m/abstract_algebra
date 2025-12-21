@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
+import { PolynomialQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section28() {
@@ -180,6 +181,12 @@ export default function Section28() {
               <strong>Reduction mod p:</strong> another way to prove irreducibility.
             </li>
           </ul>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Test Your Understanding</h3>
+          <PolynomialQuiz />
         </section>
       </div>
     </LessonLayout>

@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
+import { RingBasicsQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section32() {
@@ -211,6 +212,12 @@ export default function Section32() {
               These structures appear in geometry, physics, and representation theory.
             </li>
           </ul>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Test Your Understanding</h3>
+          <RingBasicsQuiz />
         </section>
       </div>
     </LessonLayout>

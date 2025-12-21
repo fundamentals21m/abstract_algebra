@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
+import { IdealsQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section31() {
@@ -179,6 +180,12 @@ export default function Section31() {
               Prime ideals form the "spectrum" of a ring (algebraic geometry).
             </li>
           </ul>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Test Your Understanding</h3>
+          <IdealsQuiz />
         </section>
       </div>
     </LessonLayout>

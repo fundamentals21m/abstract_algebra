@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
+import { RingBasicsQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section23() {
@@ -237,6 +238,12 @@ export default function Section23() {
               Principal ideals <Math>{'(a)'}</Math> are all multiples of <Math>a</Math>.
             </li>
           </ul>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Test Your Understanding</h3>
+          <RingBasicsQuiz />
         </section>
       </div>
     </LessonLayout>

@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
+import { ConstructionsQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section41() {
@@ -155,6 +156,12 @@ export default function Section41() {
               Field theory resolves ancient geometric questions.
             </li>
           </ul>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Test Your Understanding</h3>
+          <ConstructionsQuiz />
         </section>
       </div>
     </LessonLayout>

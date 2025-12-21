@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
+import { FreeGroupsQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section20() {
@@ -224,6 +225,12 @@ export default function Section20() {
               The rank-2 free group <Math>{'F_2'}</Math> contains all countable groups.
             </li>
           </ul>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Test Your Understanding</h3>
+          <FreeGroupsQuiz />
         </section>
       </div>
     </LessonLayout>

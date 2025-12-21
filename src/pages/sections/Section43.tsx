@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
+import { GaloisQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section43() {
@@ -154,6 +155,12 @@ export default function Section43() {
               Galois = splitting field of separable polynomial.
             </li>
           </ul>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Test Your Understanding</h3>
+          <GaloisQuiz />
         </section>
       </div>
     </LessonLayout>

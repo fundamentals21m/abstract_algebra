@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Theorem, Example, Math, MathBlock } from '../../components/common';
+import { IsomorphismTheoremsQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section16() {
@@ -247,6 +248,12 @@ export default function Section16() {
               <strong>Fourth:</strong> Subgroups of <Math>{'G/N'}</Math> correspond to subgroups of <Math>G</Math> containing <Math>N</Math>.
             </li>
           </ul>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Test Your Understanding</h3>
+          <IsomorphismTheoremsQuiz />
         </section>
       </div>
     </LessonLayout>

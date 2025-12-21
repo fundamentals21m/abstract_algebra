@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
+import { FactorGroupQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section13() {
@@ -259,6 +260,12 @@ export default function Section13() {
               <Math>{'G/G\''}</Math> is the abelianization of <Math>G</Math>.
             </li>
           </ul>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Test Your Understanding</h3>
+          <FactorGroupQuiz />
         </section>
       </div>
     </LessonLayout>

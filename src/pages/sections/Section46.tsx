@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Theorem, Example, Math, MathBlock } from '../../components/common';
+import { GaloisQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section46() {
@@ -168,6 +169,12 @@ export default function Section46() {
               <Math>{'\\text{Gal}(K/F) \\cong G/H'}</Math> when <Math>{'H = \\text{Gal}(E/K) \\trianglelefteq G'}</Math>.
             </li>
           </ul>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Test Your Understanding</h3>
+          <GaloisQuiz />
         </section>
       </div>
     </LessonLayout>

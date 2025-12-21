@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math } from '../../components/common';
+import { GaloisQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section40() {
@@ -162,6 +163,12 @@ export default function Section40() {
               Conjugates are roots of the minimal polynomial.
             </li>
           </ul>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Test Your Understanding</h3>
+          <GaloisQuiz />
         </section>
       </div>
     </LessonLayout>

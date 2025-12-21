@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
+import { IsometryQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section11() {
@@ -299,6 +300,16 @@ export default function Section11() {
               possible periodic tilings of the plane.
             </p>
           </div>
+        </section>
+
+        {/* Practice Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Practice: Plane Isometries</h3>
+          <p className="text-dark-300 mb-6">
+            Test your understanding of translations, rotations, reflections, and glide reflections.
+            Each quiz generates 10 random questions.
+          </p>
+          <IsometryQuiz />
         </section>
 
         {/* Summary */}

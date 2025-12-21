@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
+import { PolynomialQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section27() {
@@ -183,6 +184,12 @@ export default function Section27() {
               Evaluation is a ring homomorphism.
             </li>
           </ul>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Test Your Understanding</h3>
+          <PolynomialQuiz />
         </section>
       </div>
     </LessonLayout>

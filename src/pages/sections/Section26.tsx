@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
+import { FieldsQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section26() {
@@ -178,6 +179,12 @@ export default function Section26() {
               If <Math>D</Math> is already a field, <Math>{'Q(D) = D'}</Math>.
             </li>
           </ul>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Test Your Understanding</h3>
+          <FieldsQuiz />
         </section>
       </div>
     </LessonLayout>

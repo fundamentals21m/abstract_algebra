@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math } from '../../components/common';
+import { PolynomialQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section29() {
@@ -176,6 +177,12 @@ export default function Section29() {
               These codes are used everywhere: CDs, QR codes, satellites, hard drives.
             </li>
           </ul>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Test Your Understanding</h3>
+          <PolynomialQuiz />
         </section>
       </div>
     </LessonLayout>

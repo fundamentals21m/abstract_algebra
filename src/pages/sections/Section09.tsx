@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
+import { AbelianStructureQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section09() {
@@ -259,6 +260,16 @@ export default function Section09() {
               </p>
             </div>
           </div>
+        </section>
+
+        {/* Practice Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Practice: Abelian Group Structure</h3>
+          <p className="text-dark-300 mb-6">
+            Test your understanding of the Fundamental Theorem, invariant factors, and elementary divisors.
+            Each quiz generates 10 random questions.
+          </p>
+          <AbelianStructureQuiz />
         </section>
 
         {/* Summary */}

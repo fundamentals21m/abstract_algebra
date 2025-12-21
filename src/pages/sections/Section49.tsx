@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
+import { GaloisQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section49() {
@@ -241,6 +242,12 @@ export default function Section49() {
             exemplifies the power of abstract algebra: seemingly unrelated problems become
             clear when viewed through the right algebraic lens.
           </p>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Final Quiz</h3>
+          <GaloisQuiz />
         </section>
       </div>
     </LessonLayout>

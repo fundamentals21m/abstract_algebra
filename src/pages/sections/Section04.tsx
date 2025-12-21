@@ -1,6 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
-import { SymmetryAnimationDemo, PermutationComposerDemo, AbelianCayleyTableDemo, GeometricSymmetries } from '../../components/visualizations';
+import { SymmetryAnimationDemo, PermutationComposerDemo, AbelianCayleyTableDemo, GeometricSymmetries, SubgroupQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section04() {
@@ -336,6 +336,16 @@ export default function Section04() {
               Matrix multiplication is nonabelian for <Math>{'n \\geq 2'}</Math>.
             </p>
           </div>
+        </section>
+
+        {/* Practice Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Practice: Nonabelian Groups & Subgroups</h3>
+          <p className="text-dark-300 mb-6">
+            Test your understanding of dihedral groups, symmetric groups, and their properties.
+            Each quiz generates 10 random questions.
+          </p>
+          <SubgroupQuiz />
         </section>
 
         {/* Summary */}

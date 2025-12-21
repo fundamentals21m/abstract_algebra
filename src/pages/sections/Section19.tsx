@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
+import { FreeAbelianQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section19() {
@@ -217,6 +218,12 @@ export default function Section19() {
               <Math>{'\\mathbb{Z}^n/H \\cong'}</Math> (torsion) × (free part) by the structure theorem.
             </li>
           </ul>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Test Your Understanding</h3>
+          <FreeAbelianQuiz />
         </section>
       </div>
     </LessonLayout>

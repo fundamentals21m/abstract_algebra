@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
+import { NormalSubgroupQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section12() {
@@ -252,6 +253,16 @@ export default function Section12() {
               greatest achievements of 20th century mathematics.
             </p>
           </div>
+        </section>
+
+        {/* Practice Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Practice: Normal Subgroups & Factor Groups</h3>
+          <p className="text-dark-300 mb-6">
+            Test your understanding of normal subgroups, quotient groups, and the isomorphism theorems.
+            Each quiz generates 10 random questions.
+          </p>
+          <NormalSubgroupQuiz />
         </section>
 
         {/* Summary */}

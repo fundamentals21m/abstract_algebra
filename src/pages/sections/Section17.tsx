@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
+import { SylowQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section17() {
@@ -213,6 +214,12 @@ export default function Section17() {
               The Sylow theorems are essential for proving groups are not simple.
             </li>
           </ul>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Test Your Understanding</h3>
+          <SylowQuiz />
         </section>
       </div>
     </LessonLayout>

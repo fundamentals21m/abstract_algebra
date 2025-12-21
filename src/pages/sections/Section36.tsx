@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
+import { GaloisQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section36() {
@@ -187,6 +188,12 @@ export default function Section36() {
               Primes can split, remain inert, or ramify in extensions.
             </li>
           </ul>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Test Your Understanding</h3>
+          <GaloisQuiz />
         </section>
       </div>
     </LessonLayout>

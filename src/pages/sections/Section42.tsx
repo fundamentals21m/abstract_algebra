@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
+import { FiniteFieldsQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section42() {
@@ -189,6 +190,12 @@ export default function Section42() {
               Subfields correspond to divisors: <Math>{'\\mathbb{F}_{p^m} \\subseteq \\mathbb{F}_{p^n}'}</Math> iff <Math>{'m | n'}</Math>.
             </li>
           </ul>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Test Your Understanding</h3>
+          <FiniteFieldsQuiz />
         </section>
       </div>
     </LessonLayout>

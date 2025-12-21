@@ -1,6 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
-import { CosetVisualizerDemo } from '../../components/visualizations';
+import { CosetVisualizerDemo, CosetsQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section10() {
@@ -324,6 +324,16 @@ export default function Section10() {
               </p>
             </div>
           </div>
+        </section>
+
+        {/* Practice Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Practice: Cosets & Lagrange's Theorem</h3>
+          <p className="text-dark-300 mb-6">
+            Test your understanding of cosets, indices, and Lagrange's theorem.
+            Each quiz generates 10 random questions.
+          </p>
+          <CosetsQuiz />
         </section>
 
         {/* Summary */}

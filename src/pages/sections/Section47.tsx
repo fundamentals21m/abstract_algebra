@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Example, Math } from '../../components/common';
+import { GaloisQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section47() {
@@ -189,6 +190,12 @@ export default function Section47() {
               Normal subgroups ↔ Galois subextensions.
             </li>
           </ul>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Test Your Understanding</h3>
+          <GaloisQuiz />
         </section>
       </div>
     </LessonLayout>

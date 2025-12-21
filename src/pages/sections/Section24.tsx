@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
+import { NumberTheoryQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section24() {
@@ -222,6 +223,12 @@ export default function Section24() {
               Carmichael numbers fool Fermat-based primality tests.
             </li>
           </ul>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Test Your Understanding</h3>
+          <NumberTheoryQuiz />
         </section>
       </div>
     </LessonLayout>

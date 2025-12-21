@@ -1,6 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
-import { AbelianCayleyTableDemo } from '../../components/visualizations';
+import { AbelianCayleyTableDemo, SubgroupQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section03() {
@@ -229,6 +229,16 @@ export default function Section03() {
               Since <Math>{'\\gcd(2,3) = 1'}</Math>, this is isomorphic to <Math>{'\\mathbb{Z}_6'}</Math>.
             </p>
           </Example>
+        </section>
+
+        {/* Practice Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Practice: Abelian Groups & Subgroups</h3>
+          <p className="text-dark-300 mb-6">
+            Test your understanding of abelian groups, dihedral groups, symmetric groups, and subgroups.
+            Each quiz generates 10 random questions.
+          </p>
+          <SubgroupQuiz />
         </section>
 
         {/* Summary */}

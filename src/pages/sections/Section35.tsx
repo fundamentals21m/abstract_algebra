@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
+import { UFDQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section35() {
@@ -150,6 +151,12 @@ export default function Section35() {
               Examples: <Math>{'\\mathbb{Z}'}</Math>, <Math>{'F[x]'}</Math>, <Math>{'\\mathbb{Z}[i]'}</Math>.
             </li>
           </ul>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Test Your Understanding</h3>
+          <UFDQuiz />
         </section>
       </div>
     </LessonLayout>

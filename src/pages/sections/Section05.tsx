@@ -1,6 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
-import { SubgroupLatticeDemo } from '../../components/visualizations';
+import { SubgroupLatticeDemo, SubgroupQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section05() {
@@ -212,6 +212,16 @@ export default function Section05() {
             not closed under addition (since <Math>{'3 + 4 = 7'}</Math> is not in the set).
           </p>
         </div>
+
+        {/* Practice Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Practice: Subgroups</h3>
+          <p className="text-dark-300 mb-6">
+            Test your understanding of subgroups, their tests, and related concepts.
+            Each quiz generates 10 random questions.
+          </p>
+          <SubgroupQuiz />
+        </section>
 
         {/* Summary */}
         <section className="card">

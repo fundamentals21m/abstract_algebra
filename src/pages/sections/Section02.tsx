@@ -3,7 +3,7 @@ import { LessonLayout } from '../../components/layout/LessonLayout';
 import { Callout } from '../../components/common/Callout';
 import { Math as MathInline, MathBlock } from '../../components/common/MathBlock';
 import { Card, CardGrid } from '../../components/common/Card';
-import { CayleyTableDemo } from '../../components/visualizations/CayleyTable';
+import { CayleyTableDemo, GroupBasicsQuiz } from '../../components/visualizations';
 
 // Interactive Group Axiom Checker
 function GroupAxiomChecker() {
@@ -499,6 +499,16 @@ export default function Section02() {
           </p>
         </Callout>
       </div>
+
+      {/* Practice Quiz */}
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold mb-4">Practice: Group Axioms & Properties</h2>
+        <p className="text-dark-300 mb-6">
+          Test your understanding of group axioms, identity elements, inverses, and what makes a group.
+          Each quiz generates 10 random questions.
+        </p>
+        <GroupBasicsQuiz />
+      </section>
 
       {/* Key Takeaways */}
       <h2 className="text-2xl font-semibold mt-10 mb-4">Key Takeaways</h2>

@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
+import { GeneratorsQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section07() {
@@ -254,6 +255,16 @@ export default function Section07() {
               </div>
             </div>
           </Example>
+        </section>
+
+        {/* Practice Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Practice: Generators & Presentations</h3>
+          <p className="text-dark-300 mb-6">
+            Test your understanding of generating sets, group presentations, and Cayley digraphs.
+            Each quiz generates 10 random questions.
+          </p>
+          <GeneratorsQuiz />
         </section>
 
         {/* Summary */}

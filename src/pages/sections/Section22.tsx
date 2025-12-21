@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
+import { RingBasicsQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section22() {
@@ -265,6 +266,12 @@ export default function Section22() {
               <strong>Characteristic</strong> measures when <Math>{'1 + 1 + \\cdots + 1 = 0'}</Math>.
             </li>
           </ul>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Test Your Understanding</h3>
+          <RingBasicsQuiz />
         </section>
       </div>
     </LessonLayout>

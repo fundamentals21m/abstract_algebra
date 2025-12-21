@@ -1,5 +1,6 @@
 import { LessonLayout } from '../../components/layout';
 import { Definition, Theorem, Example, Math, MathBlock } from '../../components/common';
+import { PresentationsQuiz } from '../../components/visualizations';
 import 'katex/dist/katex.min.css';
 
 export default function Section21() {
@@ -262,6 +263,12 @@ export default function Section21() {
               Presentations connect algebra to topology and computation.
             </li>
           </ul>
+        </section>
+
+        {/* Quiz */}
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Test Your Understanding</h3>
+          <PresentationsQuiz />
         </section>
       </div>
     </LessonLayout>
