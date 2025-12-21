@@ -16,6 +16,54 @@ export default function Section08() {
           </p>
         </section>
 
+        {/* Why Permutation Groups Matter */}
+        <section className="card border-l-4 border-primary-500">
+          <h3 className="text-xl font-semibold mb-4">Why Permutation Groups Matter: The Story of Solving Equations</h3>
+          <div className="space-y-4 text-dark-300">
+            <p>
+              For centuries, mathematicians sought formulas to solve polynomial equations. The quadratic formula
+              (known since antiquity), the cubic formula (Cardano, 1545), and the quartic formula (Ferrari, 1545)
+              all express roots using only arithmetic operations and radicals (<Math>\sqrt[n]{}</Math>).
+            </p>
+            <p>
+              But what about degree 5 and beyond? In 1824, <strong>Niels Henrik Abel</strong> proved the stunning result:
+              there is <em>no general formula</em> for the quintic using radicals. The proof? Group theory.
+            </p>
+            <div className="bg-dark-900 p-4 rounded-lg my-4">
+              <p className="font-semibold text-dark-100 mb-2">Galois's Revolutionary Insight</p>
+              <p>
+                <strong>Évariste Galois</strong> (1811–1832) discovered that the solvability of a polynomial is encoded
+                in the <em>symmetries of its roots</em>—permutations that preserve all algebraic relationships among them.
+                These symmetries form a group, now called the <strong>Galois group</strong>.
+              </p>
+            </div>
+            <p>
+              The key theorem: A polynomial is <strong>solvable by radicals</strong> if and only if its Galois group
+              is a <strong>solvable group</strong> (a group with a special structural property involving normal subgroups).
+            </p>
+            <div className="grid md:grid-cols-2 gap-4 mt-4">
+              <div className="bg-green-500/10 border border-green-500/30 p-4 rounded-lg">
+                <p className="font-semibold text-green-400 mb-2">Solvable (degrees 2, 3, 4)</p>
+                <p className="text-sm">
+                  The symmetric groups <Math>S_2</Math>, <Math>S_3</Math>, and <Math>S_4</Math> are solvable.
+                  Hence formulas exist for quadratic, cubic, and quartic equations.
+                </p>
+              </div>
+              <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-lg">
+                <p className="font-semibold text-red-400 mb-2">Not Solvable (degree ≥ 5)</p>
+                <p className="text-sm">
+                  <Math>S_5</Math> and higher are <em>not</em> solvable (they contain the simple group <Math>A_5</Math>).
+                  No general radical formula can exist.
+                </p>
+              </div>
+            </div>
+            <p className="mt-4 text-dark-400 italic">
+              Understanding permutation groups—especially <Math>S_n</Math> and <Math>A_n</Math>—is therefore
+              essential to one of the most beautiful applications of abstract algebra.
+            </p>
+          </div>
+        </section>
+
         {/* Symmetric Group */}
         <Definition title="Symmetric Group S_n">
           <p>
