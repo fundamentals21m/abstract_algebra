@@ -2,7 +2,13 @@ import { useState } from 'react';
 import { HashRouter, Routes, Route, useParams } from 'react-router-dom';
 import { Header, Sidebar, LessonLayout } from './components/layout';
 import { Home } from './pages/Home';
+import Leaderboard from './pages/Leaderboard';
+import Theorems from './pages/Theorems';
+import InteractiveModules from './pages/InteractiveModules';
 import { getSectionById } from './data/curriculum';
+import { GamificationProvider } from './contexts/GamificationContext';
+import { NostrAuthProvider } from '@shared/contexts/NostrAuthContext';
+import { AchievementToastContainer } from './components/gamification/AchievementToast';
 
 // Part I: Groups and Subgroups
 import Section00 from './pages/sections/Section00';
@@ -139,6 +145,9 @@ function AppLayout() {
       <main className="pt-16 lg:pl-72">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/theorems" element={<Theorems />} />
+          <Route path="/interactive" element={<InteractiveModules />} />
 
           {/* Part I: Groups and Subgroups */}
           <Route path="/section/0" element={<Section00 />} />
@@ -219,9 +228,14 @@ function AppLayout() {
 
 function App() {
   return (
-    <HashRouter>
-      <AppLayout />
-    </HashRouter>
+    <GamificationProvider>
+      <NostrAuthProvider>
+        <AchievementToastContainer />
+        <HashRouter>
+          <AppLayout />
+        </HashRouter>
+      </NostrAuthProvider>
+    </GamificationProvider>
   );
 }
 
