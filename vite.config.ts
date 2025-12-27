@@ -7,7 +7,7 @@ import path from 'path'
 // GitHub Pages copy is built separately via deploy script
 export default defineConfig({
   plugins: [react()],
-  base: '/',
+  base: '/aa/',
   resolve: {
     alias: {
       '@shared': path.resolve(__dirname, './src/shared'),
